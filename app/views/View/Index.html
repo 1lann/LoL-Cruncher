@@ -1,0 +1,24 @@
+{{set . "title" "LoL Cruncher"}}
+{{append . "pageScripts" "handlebars-v2.0.0.js"}}
+{{append . "pageScripts" "database.js"}}
+{{append . "pageScripts" "search.js"}}
+{{template "header.html" .}}
+
+<div class="landing">
+	<h1 class="centered">LoL Cruncher</h1>
+	<p class="centered subtitle">A Historical League of Legends Statistics Tracker</p>
+	<div class="search-container">
+		<label class="centered input-label">Enter Summoner Name</label>
+		<input class="search-box" type="text" name="query" id="fake-search" autocomplete="off">
+	</div>
+</div>
+<div class="search">
+	<form method="POST" target="/">
+		<input class="real search-box" type="text" name="query" id="real-search" autocomplete="off">
+	</form>
+	<div class="search-results">
+		
+	</div>
+</div>
+
+{{template "footer.html" .}}

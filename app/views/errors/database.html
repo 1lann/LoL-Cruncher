@@ -1,0 +1,26 @@
+{{set . "title" "LoL Cruncher"}}
+{{append . "pageStyles" "error.css"}}
+{{template "header.html" .}}
+
+<div class="error-container">
+<h1>Database Error</h1>
+</div>
+<div class="reason container">
+<div class="col-md-offset-2 col-md-8">
+	<p>
+		There was a problem while querying the database. Try again in a few
+		seconds. If the problem persists, contact me at
+		<a href="mailto:1lanncontact@gmail.com">1lanncontact@gmail.com</a> or
+		on
+		<a href="http://www.reddit.com/message/compose?to=1lann&amp;subject=omg+lolcruncher+isn%27t+working,+fix+plz.">
+		reddit at /u/1lann</a> and describe your actions leading up to this error. Thank you.
+	</p>
+	<p class="error-code">
+		Error Code: {{.errorCode}}
+	</p>
+</div>
+</div>
+
+{{template "footer.html" .}}
+
+
