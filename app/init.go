@@ -2,7 +2,7 @@ package app
 
 import (
 	"github.com/revel/revel"
-	// "cruncher/app/models/riotapi"
+	"cruncher/app/models/riotapi"
 )
 
 func init() {
@@ -24,7 +24,7 @@ func init() {
 
 	// register startup functions with OnAppStart
 	// ( order dependent )
-	// revel.OnAppStart(riotapi.LoadAPIKey)
+	revel.OnAppStart(riotapi.LoadAPIKey)
 }
 
 // TODO turn this into revel.HeaderFilter

@@ -3,10 +3,10 @@
 # ~~~~
 
 module:testrunner
-module:jobs
 
 GET     /                                       View.Index
 GET		/test									View.Test
+GET		/request								View.Request
 
 # Ignore favicon requests
 GET     /favicon.ico                            404

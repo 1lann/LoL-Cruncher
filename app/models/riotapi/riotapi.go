@@ -1,0 +1,325 @@
+package riotapi
+
+import (
+	"cruncher/app/models/dataFormat"
+	"cruncher/app/models/queue"
+	"github.com/revel/revel"
+	"net/http"
+	"io/ioutil"
+	"time"
+	"encoding/json"
+	"errors"
+	"strconv"
+)
+
+var apiKey string
+
+type Player struct {
+	ChampionId int
+	TeamId int
+}
+
+type Stats struct {
+	GoldEarned int
+	WardPlaced int
+	WardKilled int
+	Win bool
+	DoubleKills int
+	TripleKills int
+	QuadraKills int
+	PentaKills int
+	UnrealKills int
+	NeutralMinionsKilled int
+	TimePlayed int
+	ChampionsKilled int
+	Assists int
+	NumDeaths int
+	MinionsKilled int
+}
+
+type Game struct {
+	FellowPlayers []Player
+	GameType string
+	GameId int
+	TeamId int
+	GameMode string
+	ChampionId int
+	CreateDate int64
+	SubType string
+	Stats Stats
+}
+
+type gameHistory struct {
+	Games []Game
+}
+
+func convertGame(game Game) dataFormat.Game {
+	isMatchedGame := (game.GameType == "MATCHED_GAME")
+	isClassicGame := (game.GameMode == "CLASSIC")
+
+	createTime := time.Unix(int64(game.CreateDate / 1000), 0)
+	createYear := strconv.Itoa(createTime.Year())
+	createMonth := strconv.Itoa(int(createTime.Month()))
+
+	return dataFormat.Game {
+		DidWin: game.Stats.Win,
+		IsOnBlue: (game.TeamId == 100),
+		IsNormals: (isMatchedGame && isClassicGame),
+		ChampionId: strconv.Itoa(game.ChampionId),
+		Duration: uint32(game.Stats.TimePlayed),
+		Id: strconv.Itoa(game.GameId),
+		Type: game.SubType,
+		Kills: uint32(game.Stats.ChampionsKilled),
+		Assists: uint32(game.Stats.Assists),
+		Deaths: uint32(game.Stats.NumDeaths),
+		DoubleKills: uint32(game.Stats.DoubleKills),
+		TripleKills: uint32(game.Stats.TripleKills),
+		QuadraKills: uint32(game.Stats.QuadraKills),
+		PentaKills: uint32(game.Stats.PentaKills),
+		GoldEarned: uint32(game.Stats.GoldEarned),
+		MinionsKilled: uint32(game.Stats.MinionsKilled),
+		MonstersKilled: uint32(game.Stats.NeutralMinionsKilled),
+		WardsPlaced: uint32(game.Stats.WardPlaced),
+		WardsKilled: uint32(game.Stats.WardKilled),
+		YearMonth: createYear + " " + createMonth,
+		Date: createTime,
+	}
+}
+
+func constructRecentGamesURL(id string, region string) string {
+	return "https://" + region + ".api.pvp.net/api/lol/" + region +
+		"/v1.3/game/by-summoner/" + id + "/recent?api_key=" + apiKey
+}
+
+func constructSummonerNameURL(name string, region string) string {
+	return "https://" + region + ".api.pvp.net/api/lol/" + region +
+		"/v1.4/summoner/by-name/" + name + "?api_key=" + apiKey
+}
+
+func constructLeagueURL(id string, region string) string {
+	return "https://" + region + ".api.pvp.net/api/lol/" + region +
+		"/v2.5/league/by-summoner/" + id + "/entry?api_key=" + apiKey
+}
+
+// Form a request to Riot's APIs
+func requestRiotAPI(url string) ([]byte, error) {
+	// Emtpy response used for error responses
+	emptyResponse := []byte{}
+	for i := 0; i < 5; i++ {
+		// Check if we had been blocked before for making too many requests
+		if queue.IsRateBlocked() {
+			printOut := "Requested reject due to rate blocking: "
+			revel.WARN.Println(printOut + url)
+			return emptyResponse, errors.New("Rate Limit")
+		}
+
+		// TODO Comment out in the future?
+		revel.INFO.Println("Making request to Riot Games API")
+		revel.INFO.Println(url)
+
+		resp, err := http.Get(url)
+		if err != nil {
+			return emptyResponse, err
+		}
+
+		error1xx := resp.StatusCode < 200
+		error3xx := resp.StatusCode >= 300 && resp.StatusCode < 400
+		error5xx := resp.StatusCode >= 500
+
+		// Do status code processing
+		if error1xx || error3xx || error5xx {
+			printOut := resp.Status + " Response from: "
+			revel.ERROR.Println(printOut + url)
+			if resp.StatusCode == 503 {
+				printOut = "Is error 503, retrying following recommendations"
+				revel.WARN.Println(printOut)
+				time.Sleep(time.Second)
+				continue
+			} else {
+				return emptyResponse, errors.New("Server Error")
+			}
+		}
+
+		// API Errors handled here
+		if resp.StatusCode >= 400 && resp.StatusCode < 500 {
+			if resp.StatusCode == 400 {
+				return emptyResponse, errors.New("Bad Request")
+			} else if resp.StatusCode == 401 {
+				return emptyResponse, errors.New("Unauthorized")
+			} else if resp.StatusCode == 404 {
+				return emptyResponse, errors.New("Not Found")
+			} else if resp.StatusCode == 429 {
+				printOut := "Hit maximum query limit from: "
+				revel.WARN.Println(printOut + url)
+				retryHeader := resp.Header.Get("Retry-After")
+				retryAfter, err := strconv.Atoi(retryHeader)
+				if err != nil {
+					revel.ERROR.Println("Cannot determine retry after time!")
+					queue.RateLimitBlock(5)
+				} else {
+					queue.RateLimitBlock(retryAfter)
+				}
+
+				return emptyResponse, errors.New("Rate Limit")
+			} else {
+				printOut := resp.Status + " Response from: "
+				revel.ERROR.Println(printOut + url)
+				return emptyResponse, errors.New("Server Error")
+			}
+		}
+
+		defer resp.Body.Close()
+		contents, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			printOut := "Failed to read content from: "
+			revel.ERROR.Println(printOut + url)
+			return emptyResponse, err
+		}
+
+		return contents, nil
+	}
+	return emptyResponse, errors.New("Server Error")
+}
+
+// returns id, name, error
+func ResolveSummonerId(name string, region string) (string, string, error) {
+	summonerNameURL := constructSummonerNameURL(name, region)
+	contents, err := requestRiotAPI(summonerNameURL);
+
+	if err != nil {
+		return "", "", err
+	}
+
+	// Parse JSON data from server
+	var data map[string]interface{}
+
+	err = json.Unmarshal(contents, &data)
+	if err != nil {
+		printOut := "Failed to unmarshal content from: "
+		revel.ERROR.Println(printOut + summonerNameURL)
+		return "", "", err
+	}
+
+	rawUsername := ""
+	for catchUsername, _ := range data {
+		rawUsername = catchUsername
+		break
+	}
+
+	if rawUsername == "" {
+		revel.ERROR.Println("Failed to parse raw username")
+		revel.ERROR.Println(data)
+		return "", "", errors.New("Data parse error")
+	}
+
+	userData, ok := data[rawUsername].(map[string]interface{})
+	if !ok {
+		revel.ERROR.Println("Failed to parse data past raw username")
+		revel.ERROR.Println(data)
+		return "", "", errors.New("Data parse error")
+	}
+
+	rawUserId, ok := userData["id"].(float64)
+	if !ok {
+		revel.ERROR.Println("Failed to parse id data")
+		revel.ERROR.Println(data)
+		return "", "", errors.New("Data parse error")
+	}
+
+	userId := strconv.FormatFloat(rawUserId, 'f', 0, 64)
+
+	username, ok := userData["name"].(string)
+	if !ok {
+		revel.ERROR.Println("Failed to parse resolved username")
+		revel.ERROR.Println(data)
+		return "", "", errors.New("Data parse error")
+	}
+
+	// FUCK YES! THIS ONE SHITTY REQUEST HAS PASSED THROUGH 15 CHECKS!
+	return userId, username, nil
+}
+
+// Returns tier as BRONZE, SILVER, etc. and error
+func GetTier(id string, region string) (string, error) {
+	leagueURL := constructLeagueURL(id, region)
+	contents, err := requestRiotAPI(leagueURL)
+	if err != nil {
+		if err.Error() == "Not Found" {
+			return "UNRANKED", nil
+		} else {
+			return "", err
+		}
+	}
+
+	var data map[string]interface{}
+	err = json.Unmarshal(contents, data)
+	if err != nil {
+		printOut := "Failed to unmarshal content from: "
+		revel.ERROR.Println(printOut + leagueURL)
+		return "", err
+	}
+
+	indexId := ""
+	for catchId, _ := range data {
+		indexId = catchId
+		break
+	}
+
+	if indexId == "" {
+		revel.ERROR.Println("Failed to parse index id")
+		revel.ERROR.Println(data)
+		return "", errors.New("Data parse error")
+	}
+
+	leagueDataArr, ok := data[indexId].([]interface{})
+	if !ok {
+		revel.ERROR.Println("Failed to parse league data array")
+		revel.ERROR.Println(data)
+		return "", errors.New("Data parse error")
+	}
+
+	leagueData, ok := leagueDataArr[0].(map[string]interface{})
+	if !ok {
+		revel.ERROR.Println("Failed to parse league data")
+		revel.ERROR.Println(data)
+		return "", errors.New("Data parse error")
+	}
+
+	tier, ok := leagueData["tier"].(string)
+	if !ok {
+		revel.ERROR.Println("Failed to parse tier data")
+		revel.ERROR.Println(data)
+		return "", errors.New("Data parse error")
+	}
+
+	return tier, nil
+}
+
+func GetRecentGames(id string, region string) ([]dataFormat.Game, error) {
+	recentGamesURL := constructRecentGamesURL(id, region)
+	contents, err := requestRiotAPI(recentGamesURL)
+
+	if err != nil {
+		return []dataFormat.Game{}, err
+	}
+
+	var gameData gameHistory
+	json.Unmarshal(contents, &gameData)
+
+	var results []dataFormat.Game
+
+	for _, game := range gameData.Games {
+		results = append(results, convertGame(game))
+	}
+
+	return results, nil
+}
+
+func LoadAPIKey() {
+	var found bool
+	apiKey, found = revel.Config.String("riotapikey")
+	if !found {
+		revel.ERROR.Println("No riotapikey field found in conf/app.conf")
+		panic(errors.New("No riotapikey field found in conf/app.conf"))
+	}
+}
