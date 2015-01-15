@@ -2,7 +2,7 @@
 
 ## What is LoL Cruncher?
 
-LoL Cruncher _will_ be a web app that is an upgrade of [LoL Reader](1lann.github.io/lolreader), except instead of being powered by your logs, it will be powered by Riot Games API. It will monitor your stats and will update regularily without you having to take action, apart from having to check your account on the service once to activate it. However, if you haven't played a game for more than a month, monitoring will be stopped and will require you to visit the service to reactivate it. LoL Cruncher is designed to process lots of data over long periods of time. It will have the same features of LoL Reader and even more (except for time wasted on loading, lulz).
+LoL Cruncher _will_ be a web app that is an upgrade of [LoL Reader](http://1lann.github.io/lolreader), except instead of being powered by your logs, it will be powered by Riot Games API. It will monitor your stats and will update regularily without you having to take action, apart from having to check your account on the service once to activate it. However, if you haven't played a game for more than a month, monitoring will be stopped and will require you to visit the service to reactivate it. LoL Cruncher is designed to process lots of data over long periods of time. It will have the same features of LoL Reader and even more (except for time wasted on loading, lulz).
 
 ## Running
 
