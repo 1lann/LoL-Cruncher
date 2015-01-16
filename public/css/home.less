@@ -15,34 +15,55 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-package controllers
-
-import (
-	"github.com/revel/revel"
-	"cruncher/app/models/query"
-)
-
-type View struct {
-	*revel.Controller
+.centered {
+	text-align: center;
 }
 
-func (c View) Index() revel.Result {
-	return c.Render()
-}
+h1 {
+	font-size: 100px;
+	margin-top: 0px;
+	padding-left: 20px;
+	padding-right: 20px;
 
-func (c View) Test() revel.Result {
-	c.RenderArgs["errorCode"] = "ErrNotFound"
-	return c.RenderTemplate("errors/database.html");
-}
-
-func (c View) Request() revel.Result {
-	// func GetStats(name string, region string) (string, dataFormat.Player, error) {
-	name, player, err := query.GetStats("1lann", "na")
-	if err != nil {
-		revel.ERROR.Println(err)
-		return c.RenderTemplate("errors/database.html");
+	@media (max-width: 640px) {
+		font-size: 60px;
 	}
-	c.RenderArgs["player"] = player
-	c.RenderArgs["name"] = name
-	return c.Render()
+}
+
+.subtitle {
+	margin-top: 25px;
+	font-size: 20px;
+	font-weight: 300;
+	padding-left: 20px;
+	padding-right: 20px;
+}
+
+.landing {
+	padding-top: 60px;
+}
+
+.search-container {
+	margin-top: 80px;
+	margin-bottom: 200px;
+}
+
+.input-label {
+	width: 100%;
+	font-size: 18px;
+	margin-bottom: 20px;
+	font-weight: 300;
+}
+
+.search {
+	display: none;
+}
+
+#fake-search {
+	height: 150px;
+	font-size: 60px;
+
+	@media (max-width: 640px) {
+		height: 100px;
+		font-size: 40px;
+	}
 }

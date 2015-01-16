@@ -1,12 +1,62 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>LoL Cruncher</title>
-</head>
-<body>
-<h1>{{.name}}</h1>
+
+{{set . "title" "1lann"}}
+{{append . "pageScripts" "handlebars-v2.0.0.js"}}
+{{append . "pageScripts" "database.js"}}
+{{append . "pageScripts" "search.js"}}
+{{append . "pageScripts" "transition.min.js"}}
+{{append . "pageScripts" "dropdown.min.js"}}
+{{append . "pageScripts" "stats-templates.js"}}
+{{append . "pageScripts" "stats.js"}}
+{{append . "pageStyles" "common/transition.min.css"}}
+{{append . "pageStyles" "common/dropdown.min.css"}}
+{{append . "pageStyles" "stats.css"}}
+{{template "header.html" .}}
+
+<div class="search">
+	<input class="real search-box" type="text" name="query" id="real-search" placeholder="Search" autocomplete="off">
+	<div class="search-results">
+
+	</div>
+</div>
+<div id="main" class="container">
+		<div class="row">
+			<div class="profile-container col-xs-12">
+				<div class="alert alert-success">
+					<p>You have now been registered and will be monitored for statistics</p>
+				</div>
+				<div class="profile">
+					<img src="http://avatar.leagueoflegends.com/na/1lann.png">
+					<div class="profile-info">
+						<p class="username">1lann</p>
+						<p class="region">North America</p>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-xs-12">
+				<div class="filters-area">
+					<!-- filtersAreaTemplate in stats-templates.js -->
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="left-column col-md-6">
+				<!-- generalCardTemplate in stats-templates.js -->
+			</div>
+			<div class="right-column col-md-6">
+				<div class="champion-search">
+					<input id="champion-input" type="text" placeholder="Filter">
+				</div>
+				<!-- championCardTemplate in stats-templates.js -->
+			</div>
+		</div>
+	</div>
+</div>
+
 <script>
-{{.player}}
+var playerData = {{.player}}
 </script>
-</body>
-</html>
+
+
+{{template "footer.html" .}}

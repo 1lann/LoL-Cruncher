@@ -1,0 +1,190 @@
+
+// LoL Cruncher - A Historical League of Legends Statistics Tracker
+// Copyright (C) 2015  Jason Chu (1lann) 1lanncontact@gmail.com
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#main {
+	.profile-container {
+		text-align: center;
+		margin-top: 50px;
+		margin-bottom: 30px;
+	}
+
+	.profile {
+		display: inline-block;
+		text-align: left;
+		height: 100px;
+
+		@media (max-width: 640px) {
+			height: 60px;
+			margin-top: 20px;
+		}
+
+		img {
+			vertical-align: top;
+			position: relative;
+			height: 100px;
+			width: 100px;
+
+			@media (max-width: 640px) {
+				height: 60px;
+				width: 60px;
+			}
+		}
+
+
+		.profile-info {
+			margin-left: 10px;
+			display: inline-block;
+			height: 100px;
+
+			@media (max-width: 640px) {
+				height: 60px;
+			}
+
+			.username {
+				font-size: 50px;
+				margin-top: 0px;
+				margin-bottom: 0px;
+				display: inline;
+				font-weight: 100;
+
+				@media (max-width: 640px) {
+					font-weight: 100;
+					font-size: 28px;
+				}
+			}
+
+			.region {
+				font-weight: 500;
+				margin-top: 0px;
+				margin-left: 5px;
+				font-size: 20px;
+				position: relative;
+				bottom: 8px;
+				@media (max-width: 640px) {
+					font-size: 16px;
+					margin-left: 0px;
+				}
+
+			}
+		}
+	}
+
+	.filters-area {
+		font-size: 16px;
+		text-align: center;
+		margin-bottom: 30px;
+
+		.ui.dropdown .item {
+			font-size: 16px;
+		}
+
+		.delay {
+			color: #aaa;
+			font-weight: 300;
+			font-size: 14px;
+		}
+	}
+
+	.champion-search {
+		margin-bottom: 20px;
+
+		input {
+			border: 1px solid #e0e0e0;
+			width: 100%;
+			height: 50px;
+			padding: 10px;
+			font-size: 25px;
+			font-weight: 100;
+
+			&:focus {
+				outline: 0;
+				border: 1px solid #bbb;
+			}
+		}
+	}
+
+	.left-column {
+		margin-bottom: 50px;
+	}
+
+	.stats-card {
+		border: 1px solid #e0e0e0;
+		padding: 20px;
+
+		.title {
+			font-size: 24px;
+			font-weight: 300;
+			margin: 0px;
+		}
+
+		.ui.dropdown {
+			margin-top: 2px;
+
+			.item {
+				font-size: 18px;
+			}
+		}
+
+		.subheading {
+			margin: 0px;
+		}
+
+		.champion-image {
+			vertical-align: top;
+			height: 60px;
+			width: 60px;
+		}
+
+		.champion-label {
+			display: inline-block;
+			margin-left: 10px;
+			margin-top: 2px;
+		}
+
+		.stats-area {
+			margin-top: 10px;
+
+			.time-playing {
+				font-size: 18px;
+			}
+
+			.spent-playing {
+				font-weight: 300;
+				font-size: 18px;
+			}
+
+			.stats-table {
+				margin-top: 10px;
+				font-size: 16px;
+
+				.stats-data {
+					vertical-align: middle;
+					font-weight: 500;
+					font-size: 30px;
+					text-align: right;
+					border-right: 20px solid rgba(0, 0, 0, 0);
+				}
+
+				.stats-label {
+					vertical-align: middle;
+					font-weight: 300;
+					text-align: left;
+				}
+			}
+		}
+	}
+}

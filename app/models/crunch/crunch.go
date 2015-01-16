@@ -1,3 +1,20 @@
+
+// LoL Cruncher - A Historical League of Legends Statistics Tracker
+// Copyright (C) 2015  Jason Chu (1lann) 1lanncontact@gmail.com
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 package crunch
 
 import (
@@ -16,13 +33,29 @@ func chomp(playerData *dataFormat.Player, game dataFormat.Game) {
 		return
 	}
 
+	var parsedType string
+
+	if normalSR {
+		parsedType = "Summoner's Rift Normals"
+	} else if rankedSR {
+		parsedType = "Summoner's Rift Ranked"
+	} else if teamSR {
+		parsedType = "Summoner's Rift Ranked Team"
+	} else if normalTT {
+		parsedType = "Twisted Treeline Normals"
+	} else if rankedTT {
+		parsedType = "Twisted Treeline Ranked"
+	} else if teamTT {
+		parsedType = "Twisted Treeline Ranked Team"
+	}
+
 	allAll := playerData.All.All
-	allGameType := playerData.All.GameTypeStats[game.Type]
+	allGameType := playerData.All.GameTypeStats[parsedType]
 	allChampion := playerData.All.Champions[game.ChampionId]
 
 	monthlyAll := playerData.MonthlyStats[game.YearMonth].All
 	monthlyGameType := playerData.MonthlyStats[game.YearMonth].
-		GameTypeStats[game.Type]
+		GameTypeStats[parsedType]
 	monthlyAllChampion := playerData.MonthlyStats[game.YearMonth].
 		Champions[game.ChampionId]
 
@@ -186,12 +219,12 @@ func chomp(playerData *dataFormat.Player, game dataFormat.Game) {
 	monthlyGameType.WardsKilled += game.WardsKilled
 
 	// allAll := playerData.All.All
-	// allGameType := playerData.All.GameTypeStats[game.Type]
+	// allGameType := playerData.All.GameTypeStats[parsedType]
 	// allChampion := playerData.All.Champions[game.ChampionId]
 
 	// monthlyAll := playerData.MonthlyStats[game.YearMonth].All
 	// monthlyGameType := playerData.MonthlyStats[game.YearMonth].
-	// 	GameTypeStats[game.Type]
+	// 	GameTypeStats[parsedType]
 	// monthlyAllChampion := playerData.MonthlyStats[game.YearMonth].
 	// 	Champions[game.ChampionId]
 
@@ -199,7 +232,7 @@ func chomp(playerData *dataFormat.Player, game dataFormat.Game) {
 	if playerData.All.GameTypeStats == nil {
 		playerData.All.GameTypeStats = make(map[string]dataFormat.DetailedNumberOf)
 	}
-	playerData.All.GameTypeStats[game.Type] = allGameType
+	playerData.All.GameTypeStats[parsedType] = allGameType
 	if playerData.All.Champions == nil {
 		playerData.All.Champions = make(map[string]dataFormat.BasicNumberOf)
 	}
@@ -215,7 +248,7 @@ func chomp(playerData *dataFormat.Player, game dataFormat.Game) {
 	if monthlyCopy.GameTypeStats == nil {
 		monthlyCopy.GameTypeStats = make(map[string]dataFormat.DetailedNumberOf)
 	}
-	monthlyCopy.GameTypeStats[game.Type] = monthlyGameType
+	monthlyCopy.GameTypeStats[parsedType] = monthlyGameType
 
 	if monthlyCopy.Champions == nil {
 		monthlyCopy.Champions = make(map[string]dataFormat.BasicNumberOf)

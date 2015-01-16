@@ -1,3 +1,20 @@
+
+// LoL Cruncher - A Historical League of Legends Statistics Tracker
+// Copyright (C) 2015  Jason Chu (1lann) 1lanncontact@gmail.com
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 package database
 
 import (
@@ -23,7 +40,7 @@ type playerId struct {
 	Normalized string
 }
 
-var NewPlayerUpdate bool = true
+var LastPlayerUpdate time.Time = time.Now()
 
 // returns id, resolved name, and response
 func GetSummonerID(name string, region string) (string, string, int) {
@@ -79,7 +96,7 @@ func StoreSummonerID(name string, id string, region string) int {
 		}
 	}
 
-	NewPlayerUpdate = true
+	LastPlayerUpdate = time.Now()
 
 	// Continue here if everything is clean
 	newPlayer := playerId{
@@ -137,7 +154,7 @@ func GetBrowserPlayers() ([]dataFormat.BrowserPlayer, int) {
 
 	var result []dataFormat.BrowserPlayer
 	query := bson.M{"name": 1, "region": 1}
-	err := playerIds.Find(nil).Select(query).All(&result)
+	err := playerIds.Find(nil).Sort("-name").Select(query).All(&result)
 
 	if err != nil {
 		if err == mgo.ErrNotFound {

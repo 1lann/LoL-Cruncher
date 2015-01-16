@@ -2,6 +2,7 @@
 {{append . "pageScripts" "handlebars-v2.0.0.js"}}
 {{append . "pageScripts" "database.js"}}
 {{append . "pageScripts" "search.js"}}
+{{append . "pageStyles" "home.css"}}
 {{template "header.html" .}}
 
 <div class="landing">
@@ -13,11 +14,9 @@
 	</div>
 </div>
 <div class="search">
-	<form method="POST" target="/">
-		<input class="real search-box" type="text" name="query" id="real-search" autocomplete="off">
-	</form>
+	<input class="real search-box" type="text" name="query" id="real-search" autocomplete="off">
 	<div class="search-results">
-		
+
 	</div>
 </div>
 

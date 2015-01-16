@@ -1,4 +1,22 @@
+
+// LoL Cruncher - A Historical League of Legends Statistics Tracker
+// Copyright (C) 2015  Jason Chu (1lann) 1lanncontact@gmail.com
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 // jscs: disable
+
 
 var realSearch = $("#real-search")
 
@@ -15,13 +33,18 @@ regionCodes = {
 	"tr": "Turkey",
 }
 
-serverDatabase = {
-	"1lann": ["oce", "na", "kr"],
-	"Sloganmaker": ["oce", "na", "euw"],
-	"1lamb": ["br"],
+regionOrder = {
+	"na": 1,
+	"euw": 2,
+	"eune": 3,
+	"lan": 4,
+	"las": 5,
+	"oce": 6,
+	"br": 7,
+	"ru": 8,
+	"kr": 9,
+	"tr": 10,
 }
-
-searchDatabase = ["1lamb", "1lann", "Sloganmaker"];
 
 var noResults = '\
 <div class="no-results">\
@@ -93,13 +116,13 @@ var floodResults = function(query, start) {
 	var results = [];
 
 	while (true) {
-		var searchElement = searchDatabase[start]
+		var searchElement = playersDatabase[start]
 		searchElement = searchElement.substring(0, query.length);
 		searchElement = searchElement.toLowerCase()
-		if (start < searchDatabase.length && (searchElement == query)) {
-			results.push(searchDatabase[start]);
+		if (start < playersDatabase.length && (searchElement == query)) {
+			results.push(playersDatabase[start]);
 			start++;
-			if (start >= searchDatabase.length) {
+			if (start >= playersDatabase.length) {
 				return results;
 			}
 		} else {
@@ -110,7 +133,7 @@ var floodResults = function(query, start) {
 
 var reverseAndFlood = function(start, query) {
 	for (var reverseStart = start; reverseStart >= 0; reverseStart--) {
-		var searchElement = searchDatabase[reverseStart];
+		var searchElement = playersDatabase[reverseStart];
 		searchElement = searchElement.substring(0, query.length);
 		searchElement = searchElement.toLowerCase();
 
@@ -133,7 +156,7 @@ var binarySearch = function(query, start, end) {
 	}
 
 	var center = Math.ceil((start + end) / 2);
-	var test = searchDatabase[center];
+	var test = playersDatabase[center];
 	if (test == center) {
 		return floodResults(query, center)
 	} else if (test.substring(0, query.length).toLowerCase() == query) {
@@ -146,7 +169,15 @@ var binarySearch = function(query, start, end) {
 }
 
 var search = function(query) {
-	return binarySearch(query.toLowerCase(), 0, searchDatabase.length - 1)
+	var lowerQuery = query.toLowerCase();
+	var results = binarySearch(lowerQuery, 0, playersDatabase.length - 1);
+	return results;
+}
+
+var sortRegions = function(regions) {
+	return regions.sort(function(a, b) {
+		return regionOrder[a] - regionOrder[b]
+	})
 }
 
 var displayResults = function(query) {
@@ -162,8 +193,8 @@ var displayResults = function(query) {
 		return;
 	}
 	var resultNumber = 0;
-	for (var i = 0; i < results.length; i++) {
-		var serverResult = serverDatabase[results[i]];
+	for (var i = 0; i < Math.min(results.length, 5); i++) {
+		var serverResult = sortRegions(regionsDatabase[results[i]]);
 
 		for (var r = 0; r < serverResult.length; r++) {
 			var arguments = {
@@ -192,6 +223,7 @@ realSearch.on("input", function() {
 	if (realSearch.val().trim() == "") {
 		realSearch.val("")
 	}
+	$("#main").hide();
 	displayResults(realSearch.val())
 })
 
