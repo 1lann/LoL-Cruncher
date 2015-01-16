@@ -36,6 +36,7 @@ This includes
 - [Bootstrap](https://github.com/twbs/bootstrap/blob/master/LICENSE)
 - [jQuery](https://github.com/jquery/jquery/blob/master/LICENSE.txt)
 - [Semantic UI](https://github.com/Semantic-Org/Semantic-UI/blob/master/LICENSE.md)
+- [Revel](https://github.com/revel/revel/blob/master/LICENSE)
 
 ### Why did I choose GNU Affero?
 
