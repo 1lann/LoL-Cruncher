@@ -29,6 +29,14 @@ Then, run `revel run cruncher` and navigate your browser to http://127.0.0.1:900
 
 LoL Cruncher is licensed under GNU Affero GPL v3.0. It can be found under /LICENSE and a summary and full license is available at http://choosealicense.com/licenses/agpl-3.0/. In a summary, it allows for modifications, commercial use and distribution as long as the source code is published, including server code if it is distributed on a network, and that I am not held liable for the code.
 
+Note that this license does not apply to material used in LoL Cruncher I do not own. You can find their respective licenses at the top of their respective files.
+
+This includes
+- [Handlebars](https://github.com/wycats/handlebars.js/blob/master/LICENSE)
+- [Bootstrap](https://github.com/twbs/bootstrap/blob/master/LICENSE)
+- [jQuery](https://github.com/jquery/jquery/blob/master/LICENSE.txt)
+- [Semantic UI](https://github.com/Semantic-Org/Semantic-UI/blob/master/LICENSE.md)
+
 ### Why did I choose GNU Affero?
 
 Because I want people who make forks, improvements or distribute my work, also publish their source code for others to take.
