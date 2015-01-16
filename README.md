@@ -24,3 +24,12 @@ Then, run `revel run cruncher` and navigate your browser to http://127.0.0.1:900
 - ???
 - Profit
 
+
+## License
+
+LoL Cruncher is licensed under GNU Affero GPL v3.0. It can be found under /LICENSE and a summary and full license is available at http://choosealicense.com/licenses/agpl-3.0/. In a summary, it allows for modifications, commercial use and distribution as long as the source code is published, including server code if it is distributed on a network, and that I am not held liable for the code.
+
+### Why did I choose GNU Affero?
+
+Because I want people who make forks, improvements or distribute my work, also publish their source code for others to take.
+
