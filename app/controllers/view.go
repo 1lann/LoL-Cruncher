@@ -60,5 +60,6 @@ func (c View) Request(region, name string) revel.Result {
 	c.RenderArgs["new"] = new
 	c.RenderArgs["player"] = player
 	c.RenderArgs["name"] = name
+	c.RenderArgs["titleName"] = name + " - LoL Cruncher"
 	return c.Render()
 }
