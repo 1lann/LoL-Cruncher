@@ -70,9 +70,6 @@ func RegisterSummoner(name string, region string) (string, string,
 	newPlayer.Id = id
 	newPlayer.Region = region
 
-	newPlayer.NextUpdate = time.Now().Add(time.Minute)
-	newPlayer.NextLongUpdate = time.Now().Add(time.Hour)
-
 	games, err := riotapi.GetRecentGames(id, region)
 	if err != nil {
 		return "", "", dataFormat.Player{}, err
@@ -90,6 +87,14 @@ func RegisterSummoner(name string, region string) (string, string,
 
 	newPlayer = crunch.Crunch(newPlayer, games)
 
+	// Other updates handled by queue
+	// newPlayer.NextUpdate = time.Now().Add(time.Minute)
+	newPlayer.NextLongUpdate = time.Now().Add(time.Hour * 72)
+	newPlayer.NextUpdate = crunch.GetNextUpdate(games)
+
+	revel.INFO.Printf("Next update time for %v in hours: %v", newPlayer.Id,
+		newPlayer.NextUpdate)
+
 	resp := database.StoreSummonerData(newPlayer)
 	if resp == database.Yes {
 		return id, resolvedName, newPlayer, nil
@@ -101,22 +106,23 @@ func RegisterSummoner(name string, region string) (string, string,
 }
 
 // Returns resolved summoner name, player data, error message
-func GetStats(name string, region string) (string, dataFormat.Player, error) {
+func GetStats(name string, region string) (string,
+		dataFormat.Player, bool, error) {
 	playerId, resolvedName, err := ResolveSummonerId(name, region)
 	if err != nil {
-		return "", dataFormat.Player{}, err
+		return "", dataFormat.Player{}, false, err
 	}
 
 	playerData, resp := database.GetSummonerData(playerId, region)
 	if resp == database.Yes {
-		return resolvedName, playerData, nil
+		return resolvedName, playerData, false, nil
 	} else if resp == database.Down {
-		return "", dataFormat.Player{}, errors.New("database down")
+		return "", dataFormat.Player{}, false, errors.New("database down")
 	} else if resp == database.No {
 		// Go kill urself plz
 		_, resolvedName, playerData, err := RegisterSummoner(name, region)
-		return resolvedName, playerData, err
+		return resolvedName, playerData, true, err
 	} else {
-		return "", dataFormat.Player{}, errors.New("database error")
+		return "", dataFormat.Player{}, false, errors.New("database error")
 	}
 }

@@ -20,6 +20,7 @@ package controllers
 import (
 	"github.com/revel/revel"
 	"cruncher/app/models/query"
+	"strings"
 )
 
 type View struct {
@@ -30,18 +31,33 @@ func (c View) Index() revel.Result {
 	return c.Render()
 }
 
-func (c View) Test() revel.Result {
-	c.RenderArgs["errorCode"] = "ErrNotFound"
-	return c.RenderTemplate("errors/database.html");
-}
-
-func (c View) Request() revel.Result {
-	// func GetStats(name string, region string) (string, dataFormat.Player, error) {
-	name, player, err := query.GetStats("1lann", "na")
-	if err != nil {
-		revel.ERROR.Println(err)
-		return c.RenderTemplate("errors/database.html");
+func (c View) Request(region, name string) revel.Result {
+	if !(region == "na" || region == "euw" || region == "eune" ||
+			region == "lan" || region == "las" || region == "oce" ||
+			region == "br" || region == "ru" || region == "kr" ||
+			region == "tr") {
+		c.Flash.Error("Sorry, that region isn't supported!")
+		return c.Redirect(View.Index)
 	}
+
+	region = strings.ToLower(region)
+
+	name, player, new, err := query.GetStats(name, region)
+	if err != nil {
+		if (err.Error() == "database error") {
+			return c.RenderTemplate("errors/database.html")
+		} else if (err.Error() == "database down") {
+			return c.RenderTemplate("errors/down.html")
+		} else if (err.Error() == "Not Found") {
+			c.Flash.Error("Sorry, that summoner could not be found!")
+			return c.Redirect(View.Index)
+		} else {
+			c.Flash.Error("Could not connect to Riot Games' servers! Try again later.")
+			return c.Redirect(View.Index)
+		}
+	}
+
+	c.RenderArgs["new"] = new
 	c.RenderArgs["player"] = player
 	c.RenderArgs["name"] = name
 	return c.Render()

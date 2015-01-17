@@ -21,15 +21,13 @@
 <div id="main" class="container">
 		<div class="row">
 			<div class="profile-container col-xs-12">
+				{{if .new}}
 				<div class="alert alert-success">
-					<p>You have now been registered and will be monitored for statistics</p>
+					<p>{{.player}} has now been registered and will be monitored for statistics</p>
 				</div>
+				{{end}}
 				<div class="profile">
-					<img src="http://avatar.leagueoflegends.com/na/1lann.png">
-					<div class="profile-info">
-						<p class="username">1lann</p>
-						<p class="region">North America</p>
-					</div>
+					<!-- profileTemplate in stats-templates.js -->
 				</div>
 			</div>
 		</div>
@@ -42,13 +40,20 @@
 		</div>
 		<div class="row">
 			<div class="left-column col-md-6">
-				<!-- generalCardTemplate in stats-templates.js -->
+				<div class="general-card">
+					<!-- generalCardTemplate in stats-templates.js -->
+				</div>
+				<div class="more-champions">
+
+				</div>
 			</div>
 			<div class="right-column col-md-6">
 				<div class="champion-search">
-					<input id="champion-input" type="text" placeholder="Filter">
+					<input id="champion-input" type="text" placeholder="Filter champions">
 				</div>
-				<!-- championCardTemplate in stats-templates.js -->
+				<div class="champion-cards">
+					<!-- championCardTemplate in stats-templates.js -->
+				</div>
 			</div>
 		</div>
 	</div>
@@ -56,6 +61,7 @@
 
 <script>
 var playerData = {{.player}}
+var summonerName = {{.name}}
 </script>
 
 

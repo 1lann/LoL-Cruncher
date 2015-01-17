@@ -20,7 +20,7 @@
 $(".ui.dropdown").dropdown();
 
 var selectedDate = "since " + playerData.RecordStart;
-var selectedFilter = "All your" // Can also be "Your average"
+var selectedFilter = "All"
 
 var templateMonths = [];
 var dataMonths = {};
@@ -114,6 +114,7 @@ var oneDecRound = function(num) {
 	return (Math.round(num * 10) / 10).toString();
 }
 
+// You may want to collapse these functions in your IDE/Text Editor
 var generateGeneralStats = function() {
 	var outputStats = [];
 	var statsSource = selectedCollection.All
@@ -126,7 +127,7 @@ var generateGeneralStats = function() {
 		time: getHumanTime(statsSource.TimePlayed)
 	});
 
-	if (selectedFilter == "All your") {
+	if (selectedFilter == "All") {
 		outputStats.push({
 			label: "Games played",
 			data: (statsSource.Wins + statsSource.Losses).toString(),
@@ -195,7 +196,7 @@ var generateGeneralStats = function() {
 			label: "Pentakills",
 			data: statsSource.PentaKills.toString(),
 		});
-	} else if (selectedFilter == "Your rates/average") {
+	} else if (selectedFilter == "Rates/average") {
 		var numGames = statsSource.Wins + statsSource.Losses;
 		var timePlayed = statsSource.TimePlayed;
 		outputStats.push({
@@ -223,6 +224,10 @@ var generateGeneralStats = function() {
 		outputStats.push({
 			label: "Minions killed per 10 minutes",
 			data: oneDecRound(statsSource.MinionsKilled/(timePlayed/600)),
+		});
+		outputStats.push({
+			label: "Jungle monsters killed per 10 minutes",
+			data: oneDecRound(statsSource.MonstersKilled/(timePlayed/600)),
 		});
 		outputStats.push({
 			label: "Gold earned per 10 minutes",
@@ -261,7 +266,7 @@ var generateChampionStats = function(championId) {
 		time: getHumanTime(statsSource.TimePlayed)
 	});
 
-	if (selectedFilter == "All your") {
+	if (selectedFilter == "All") {
 		outputStats.push({
 			label: "Games played",
 			data: (statsSource.Wins + statsSource.Losses).toString(),
@@ -298,7 +303,7 @@ var generateChampionStats = function(championId) {
 			label: "Assists",
 			data: statsSource.Assists.toString(),
 		});
-	} else if (selectedFilter == "Your rates/average") {
+	} else if (selectedFilter == "Rates/average") {
 		var numGames = statsSource.Wins + statsSource.Losses;
 		var timePlayed = statsSource.TimePlayed;
 		outputStats.push({
@@ -318,6 +323,10 @@ var generateChampionStats = function(championId) {
 			data: oneDecRound(statsSource.MinionsKilled/(timePlayed/600)),
 		});
 		outputStats.push({
+			label: "Jungle monsters killed per 10 minutes",
+			data: oneDecRound(statsSource.MonstersKilled/(timePlayed/600)),
+		});
+		outputStats.push({
 			label: "Wards placed per game",
 			data: oneDecRound(statsSource.WardsPlaced/numGames),
 		});
@@ -334,13 +343,15 @@ var generateChampionStats = function(championId) {
 			data: oneDecRound(statsSource.Assists/numGames),
 		});
 	}
+
+	return spentPlaying + statsTemplate({statsRow: outputStats});
 }
 
 var generateGeneralArea = function() {
-	$(".left-column").empty();
+	$(".general-card").empty();
 
 	var gameTypes = [];
-	for (gameType in selectedCollection.GameTypeStats) {
+	for (var gameType in selectedCollection.GameTypeStats) {
 		gameTypes.push({text: gameType});
 	}
 
@@ -363,13 +374,13 @@ var generateGeneralArea = function() {
 		}
 	})
 
-	$(".left-column").append(generalArea);
+	$(".general-card").append(generalArea);
 }
 
 var updateGeneralArea = function() {
 	// Only call if stats-area exists
-	$(".left-column .stats-area").empty()
-	$(".left-column .stats-area").append(generateGeneralStats());
+	$(".general-card .stats-area").empty()
+	$(".general-card .stats-area").append(generateGeneralStats());
 }
 
 var generateFiltersArea = function() {
@@ -382,27 +393,125 @@ var generateFiltersArea = function() {
 	filtersArea.find("#general-dropdown").dropdown({
 		onChange: function(value, text) {
 			selectedFilter = text;
-			generateGeneralArea();
+			regenerate();
 		}
 	});
 
 	filtersArea.find("#date-dropdown").dropdown({
 		onChange: function(value, text) {
 			selectedDate = text;
-			generateGeneralArea();
+			selectedCollection = dataMonths[selectedDate];
+			regenerate();
 		}
 	});
 
 	$(".filters-area").append(filtersArea);
 }
 
+var indexChampions = function() {
+	var championIds = Object.keys(selectedCollection.Champions);
+
+	for (var i = 0; i < championIds.length; i++) {
+		var championId = championIds[i];
+		championsSearchIndex[championsDatabase[championId].name] = championId;
+	}
+	return
+}
+
+var championSearch = function(query) {
+	var results = []; // In champion ID form plz.
+
+	if (query.trim() == "") {
+		$("#champion-input").val("");
+		// Sort by number of games
+		var championIds = Object.keys(selectedCollection.Champions);
+
+		championIds.sort(function(a, b) {
+			var championA = selectedCollection.Champions[a];
+			var championB = selectedCollection.Champions[b]
+			return (championB.Wins + championB.Losses)
+				- (championA.Wins + championA.Losses);
+		})
+
+		results = championIds;
+	} else {
+		// First get indexOf == 0
+		// Followed by everything else in natrual order.
+		var exact = false;
+		var startsWith = [];
+		var contains = [];
+		for (var championName in championsSearchIndex) {
+			var lowerChampionName = championName.toLowerCase();
+			if (lowerChampionName == query) {
+				exact = championsSearchIndex[championName];
+			} else if (lowerChampionName.indexOf(query) >= 0) {
+				if (lowerChampionName.indexOf(query) == 0) {
+					startsWith.push(championsSearchIndex[championName]);
+				} else {
+					contains.push(championsSearchIndex[championName]);
+				}
+			}
+		}
+
+		results = startsWith.concat(contains);
+		if (exact) {
+			results.splice(0, 0, exact);
+		}
+	}
+	if (results.length > 10) {
+		return results.splice(0, 10);
+	}
+	return results
+}
+
 var generateChampionCards = function() {
-	if (filter == "") {
-		// Generated sorted by number of games
+	$(".champion-cards").empty();
+	$(".more-champions").empty();
+
+	var results = championSearch($("#champion-input").val().toLowerCase())
+	var renderInput = [];
+	for (var i = 0; i < results.length; i++) {
+		var renderArgs = {
+			imageName: championsDatabase[results[i]].image,
+			displayName: championsDatabase[results[i]].name,
+			dateFilter: selectedDate,
+			stats: generateChampionStats(results[i]),
+		}
+		var championCard = championCardTemplate(renderArgs);
+
+		if (window.innerWidth <= 991) {
+			$(".champion-cards").append(championCard)
+		} else if (i == 0) {
+			$(".champion-cards").append(championCard)
+		} else if (i % 2 == 0) {
+			$(".more-champions").append(championCard)
+		} else {
+			$(".champion-cards").append(championCard)
+		}
+	}
+
+	if (results.length <= 0) {
+		$(".champion-cards").append('<p class="no-champions">No results</p>');
 	}
 }
 
-generateGeneralArea();
-generateFiltersArea();
+var regenerate = function() {
+	generateGeneralArea();
+	generateChampionCards();
+}
 
+generateFiltersArea();
+indexChampions();
+
+$("#champion-input").on("input", function() {
+	generateChampionCards();
+})
+
+regenerate();
+
+$(".profile").append(profileTemplate({
+	username: summonerName,
+	region: regionCodes[playerData.Region],
+	regionCode: playerData.Region,
+}));
 

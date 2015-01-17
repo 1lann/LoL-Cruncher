@@ -83,6 +83,21 @@ var noResults = '\
 	</div>\
 </div>'
 
+var getNoResults = function() {
+	var noResultsElement = $(noResults);
+	for (var region in regionOrder) {
+		noResultsElement.find("#" + region).click(function(regionCode) {
+			return function() {
+				var regionPrefix = "/" + regionCode + "/";
+				var searchInput = $("#real-search").val();
+				searchInput = searchInput.replace("/", "");
+				location.assign(regionPrefix + searchInput);
+			}
+		}(region))
+	}
+	return noResultsElement;
+}
+
 var resultSource = '\
 <div class="result">\
 	<div class="container">\
@@ -189,7 +204,7 @@ var displayResults = function(query) {
 	}
 	var results = search(query);
 	if (results.length <= 0) {
-		$(".search-results").append(noResults)
+		$(".search-results").append(getNoResults());
 		return;
 	}
 	var resultNumber = 0;
@@ -203,7 +218,12 @@ var displayResults = function(query) {
 				"regionCode": serverResult[r],
 			}
 
-			var resultElement = resultTemplate(arguments);
+			var resultElement = $(resultTemplate(arguments));
+			resultElement.click(function(name, regionCode) {
+				return function() {
+					location.assign("/" + regionCode + "/" + name);
+				}
+			}(results[i], serverResult[r]))
 			$(".search-results").append(resultElement);
 
 			displayedResults.push(resultElement);
@@ -213,7 +233,7 @@ var displayResults = function(query) {
 	var notHereElement = $(notHere);
 	notHereElement.click(function() {
 		$(".search-results").empty();
-		$(".search-results").append(noResults);
+		$(".search-results").append(getNoResults());
 	})
 	$(".search-results").append(notHereElement);
 

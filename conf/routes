@@ -5,7 +5,6 @@
 module:testrunner
 
 GET     /                                       View.Index
-GET		/request								View.Request
 POST	/players								Data.CheckDatabaseUpdates
 
 # Ignore favicon requests
@@ -15,4 +14,4 @@ GET     /favicon.ico                            404
 GET     /public/*filepath                       Static.Serve("public")
 
 # Lowest priority would be region loading
-# GET	/:region/:name							View.Request
+GET		/:region/:name							View.Request

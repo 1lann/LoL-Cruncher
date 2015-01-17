@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/revel/revel"
 	"cruncher/app/models/riotapi"
+	"cruncher/app/models/cron"
 )
 
 func init() {
@@ -25,6 +26,7 @@ func init() {
 	// register startup functions with OnAppStart
 	// ( order dependent )
 	revel.OnAppStart(riotapi.LoadAPIKey)
+	revel.OnAppStart(cron.Start)
 }
 
 // TODO turn this into revel.HeaderFilter

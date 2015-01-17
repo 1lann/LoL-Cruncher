@@ -19,7 +19,6 @@ package riotapi
 
 import (
 	"cruncher/app/models/dataFormat"
-	"cruncher/app/models/queue"
 	"github.com/revel/revel"
 	"net/http"
 	"io/ioutil"
@@ -118,13 +117,23 @@ func constructLeagueURL(id string, region string) string {
 		"/v2.5/league/by-summoner/" + id + "/entry?api_key=" + apiKey
 }
 
+var rateLimitingBlock time.Time
+
+func rateLimitBlock(seconds int) {
+	rateLimitingBlock = time.Now().Add(time.Second * time.Duration(seconds))
+}
+
+func isRateBlocked() bool {
+	return time.Now().Before(rateLimitingBlock)
+}
+
 // Form a request to Riot's APIs
 func requestRiotAPI(url string) ([]byte, error) {
 	// Emtpy response used for error responses
 	emptyResponse := []byte{}
 	for i := 0; i < 5; i++ {
 		// Check if we had been blocked before for making too many requests
-		if queue.IsRateBlocked() {
+		if isRateBlocked() {
 			printOut := "Requested reject due to rate blocking: "
 			revel.WARN.Println(printOut + url)
 			return emptyResponse, errors.New("Rate Limit")
@@ -172,9 +181,9 @@ func requestRiotAPI(url string) ([]byte, error) {
 				retryAfter, err := strconv.Atoi(retryHeader)
 				if err != nil {
 					revel.ERROR.Println("Cannot determine retry after time!")
-					queue.RateLimitBlock(5)
+					rateLimitBlock(5)
 				} else {
-					queue.RateLimitBlock(retryAfter)
+					rateLimitBlock(retryAfter)
 				}
 
 				return emptyResponse, errors.New("Rate Limit")
@@ -269,7 +278,7 @@ func GetTier(id string, region string) (string, error) {
 	}
 
 	var data map[string]interface{}
-	err = json.Unmarshal(contents, data)
+	err = json.Unmarshal(contents, &data)
 	if err != nil {
 		printOut := "Failed to unmarshal content from: "
 		revel.ERROR.Println(printOut + leagueURL)

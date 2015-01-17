@@ -154,7 +154,7 @@ func GetBrowserPlayers() ([]dataFormat.BrowserPlayer, int) {
 
 	var result []dataFormat.BrowserPlayer
 	query := bson.M{"name": 1, "region": 1}
-	err := playerIds.Find(nil).Sort("-name").Select(query).All(&result)
+	err := playerIds.Find(nil).Sort("name").Select(query).All(&result)
 
 	if err != nil {
 		if err == mgo.ErrNotFound {
@@ -203,6 +203,24 @@ func StoreSummonerData(player dataFormat.Player) int {
 	return Yes
 }
 
+func StoreTier(id string, region string, tier string,
+		nextLongUpdate time.Time) int {
+	if !IsConnected {
+		go Connect()
+		return Down
+	}
+
+	query := bson.M{"id": id, "region": region}
+	err := players.Update(query, bson.M{"$set": bson.M{
+		"tier": tier,
+		"nextlongupdate": nextLongUpdate,
+	}})
+	if err != nil {
+		return No
+	}
+	return Yes
+}
+
 func GetUpdatePlayers() ([]dataFormat.BasicPlayer, int) {
 	if !IsConnected {
 		go Connect()
@@ -219,15 +237,15 @@ func GetUpdatePlayers() ([]dataFormat.BasicPlayer, int) {
 		"nextlongupdate": 1,
 	}
 
-	it := players.Find(nil).Select(query).Sort("-nextupdate").Iter()
+	it := players.Find(nil).Select(query).Sort("nextupdate").Iter()
 
 	var player dataFormat.BasicPlayer
 	for it.Next(&player) {
 		if player.NextUpdate.IsZero() {
 			revel.ERROR.Println(`Zero time for next update from GetUpdates.
-				This error is not self resolving and should be manually fixed.
-				However in most cases, the error will be visible to the end
-				user`)
+				 This error is not self resolving and should be manually fixed.
+				 However in most cases, the error will be visible to the end
+				 user`)
 			revel.ERROR.Println(player)
 		} else {
 			if player.NextUpdate.Before(time.Now()) {
@@ -269,7 +287,7 @@ func GetLongUpdatePlayers() ([]dataFormat.BasicPlayer, int) {
 		"nextlongupdate": 1,
 	}
 
-	it := players.Find(nil).Select(query).Sort("-nextlongupdate").Iter()
+	it := players.Find(nil).Select(query).Sort("nextlongupdate").Iter()
 
 	var player dataFormat.BasicPlayer
 	for it.Next(&player) {

@@ -43,11 +43,11 @@ var filtersAreaSource = '\
 <span>\
 	<div class="ui inline dropdown" id="general-dropdown">\
 		<input type="hidden" name="data-type">\
-		<div class="text">All your</div>\
+		<div class="text">All</div>\
 			<i class="dropdown icon"></i>\
 			<div class="menu">\
-			<div class="item active selected" data-text="All your">All</div>\
-			<div class="item" data-text="Your rates/average">Rates/Averages</div>\
+			<div class="item active selected" data-text="All">All</div>\
+			<div class="item" data-text="Rates/average">Rates/Averages</div>\
 		</div>\
 	</div>\
 	statistics\
@@ -65,7 +65,7 @@ var filtersAreaSource = '\
 </span>\
 <p class="delay">Statistics may be delayed by up to 24 hours</p>'
 
-var filtersAreaTemplate = Handlebars.compile(filtersAreaSource)
+var filtersAreaTemplate = Handlebars.compile(filtersAreaSource);
 
 var leftDropdownSource ='\
 <div class="ui inline dropdown">\
@@ -80,12 +80,11 @@ var leftDropdownSource ='\
 	</div>\
 </div>'
 
-var leftDropdownTemplate = Handlebars.compile(leftDropdownSource)
+var leftDropdownTemplate = Handlebars.compile(leftDropdownSource);
 
 var championCardSource = '\
-{{#each championCard}}\
 <div class="stats-card">\
-	<img class="champion-image" src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/{{imageName}}.png">\
+	<img class="champion-image" src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/{{imageName}}">\
 	<div class="champion-label">\
 		<p class="title">Stats for {{displayName}}</p>\
 		<p class="subheading">{{dateFilter}}</p>\
@@ -94,10 +93,9 @@ var championCardSource = '\
 	{{{stats}}}\
 	</div>\
 </div>\
-{{/each}}\
 '
 
-var championCardTemplate = Handlebars.compile(championCardSource)
+var championCardTemplate = Handlebars.compile(championCardSource);
 
 var generalCardSource = '\
 <div class="stats-card">\
@@ -108,4 +106,13 @@ var generalCardSource = '\
 	</div>\
 </div>'
 
-var generalCardTemplate = Handlebars.compile(generalCardSource)
+var generalCardTemplate = Handlebars.compile(generalCardSource);
+
+var profileSource = '\
+<img src="http://avatar.leagueoflegends.com/{{regionCode}}/{{{username}}}.png">\
+<div class="profile-info">\
+	<p class="username">{{username}}</p>\
+	<p class="region">{{region}}</p>\
+</div>'
+
+var profileTemplate = Handlebars.compile(profileSource);

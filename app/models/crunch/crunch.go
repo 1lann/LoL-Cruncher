@@ -19,6 +19,8 @@ package crunch
 
 import (
 	"cruncher/app/models/dataFormat"
+	"time"
+	"math"
 )
 
 func chomp(playerData *dataFormat.Player, game dataFormat.Game) {
@@ -269,6 +271,18 @@ func hasBeenProcessed(games []string, query string) bool {
 	return false
 }
 
+func GetNextUpdate(games []dataFormat.Game) time.Time {
+	checkIndex := int(math.Min(float64(4), float64(len(games) - 1)))
+	intervalDuration := time.Since(games[checkIndex].Date)
+
+	if intervalDuration.Hours() > 24 {
+		intervalDuration = time.Duration(24) * time.Hour
+	}
+
+	return time.Now().Add(intervalDuration)
+}
+
+
 func Crunch(playerData dataFormat.Player,
 	games []dataFormat.Game) dataFormat.Player {
 	var processedList []string
@@ -280,5 +294,8 @@ func Crunch(playerData dataFormat.Player,
 	}
 
 	playerData.ProcessedGames = processedList
+
+
+
 	return playerData
 }

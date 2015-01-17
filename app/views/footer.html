@@ -3,9 +3,7 @@
 			<p class="heavy">LoL Cruncher by 1lann, designed by <a href="https://github.com/gravityscore">GravityScore</a></p>
 			<p><a href="https://github.com/1lann/LoL-Cruncher" target="_blank">Fork me on GitHub</a></p>
 	</div>
-	{{if eq .RunMode "dev"}}
-		{{template "debug.html" .}}
-	{{end}}
+
 	<link rel="stylesheet" type="text/css" href="/public/css/common/bootstrap.min.css">
 	<link rel="stylesheet" type="text/css" href="/public/css/common/common.css">
 	{{range .pageStyles}}
