@@ -154,7 +154,7 @@ func GetBrowserPlayers() ([]dataFormat.BrowserPlayer, int) {
 
 	var result []dataFormat.BrowserPlayer
 	query := bson.M{"name": 1, "region": 1}
-	err := playerIds.Find(nil).Sort("name").Select(query).All(&result)
+	err := playerIds.Find(nil).Sort("normalized").Select(query).All(&result)
 
 	if err != nil {
 		if err == mgo.ErrNotFound {
