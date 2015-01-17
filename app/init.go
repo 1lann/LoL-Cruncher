@@ -4,6 +4,7 @@ import (
 	"github.com/revel/revel"
 	"cruncher/app/models/riotapi"
 	"cruncher/app/models/cron"
+	"cruncher/app/models/database"
 )
 
 func init() {
@@ -26,6 +27,7 @@ func init() {
 	// register startup functions with OnAppStart
 	// ( order dependent )
 	revel.OnAppStart(riotapi.LoadAPIKey)
+	revel.OnAppStart(database.Connect)
 	revel.OnAppStart(cron.Start)
 }
 

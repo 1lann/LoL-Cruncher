@@ -37,7 +37,7 @@ func isDisconnected(err string) bool {
 	}
 }
 
-func Connect() bool {
+func Connect() {
 	if !isConnecting {
 		IsConnected = false
 
@@ -47,12 +47,21 @@ func Connect() bool {
 
 		isConnecting = true
 		revel.INFO.Println("Connecting...")
-		session, err := mgo.DialWithTimeout("127.0.0.1", time.Second*3)
+
+		databaseIp, found := revel.Config.String("database.ip")
+
+		if !found {
+			revel.ERROR.Println("Missing database.ip in conf/app.conf!")
+			panic("Missing database.ip in conf/app.conf!")
+			return
+		}
+
+		session, err := mgo.DialWithTimeout(databaseIp, time.Second*3)
 		if err != nil {
 			isConnecting = false
 			IsConnected = false
 			revel.ERROR.Println(err)
-			return false
+			return
 		}
 
 		session.SetMode(mgo.Monotonic, true)
@@ -67,12 +76,5 @@ func Connect() bool {
 
 		IsConnected = true
 		isConnecting = false
-		return true
-	} else {
-		return false
 	}
-}
-
-func init() {
-	Connect();
 }
