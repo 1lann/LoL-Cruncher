@@ -109,7 +109,7 @@ var generalCardSource = '\
 var generalCardTemplate = Handlebars.compile(generalCardSource);
 
 var profileSource = '\
-<img src="http://avatar.leagueoflegends.com/{{regionCode}}/{{{username}}}.png">\
+<img src="https://avatar.leagueoflegends.com/{{regionCode}}/{{{username}}}.png">\
 <div class="profile-info">\
 	<p class="username">{{username}}</p>\
 	<p class="region">{{region}}</p>\

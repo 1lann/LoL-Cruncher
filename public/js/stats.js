@@ -512,6 +512,6 @@ regenerate();
 $(".profile").append(profileTemplate({
 	username: summonerName,
 	region: regionCodes[playerData.Region],
-	regionCode: playerData.Region,
+	regionCode: playerData.Region.toUpperCase(),
 }));
 
