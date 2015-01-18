@@ -49,7 +49,9 @@ func GetSummonerID(name string, region string) (string, string, int) {
 		return "", "", Down
 	}
 
-	query := bson.M{"normalized": strings.ToLower(name), "region": region}
+	normalizedName := strings.Replace(strings.ToLower(name), " ", "", -1)
+
+	query := bson.M{"normalized": normalizedName, "region": region}
 	var result playerId
 	err := playerIds.Find(query).One(&result)
 
@@ -98,12 +100,14 @@ func StoreSummonerID(name string, id string, region string) int {
 
 	LastPlayerUpdate = time.Now()
 
+	normalizedName := strings.Replace(strings.ToLower(name), " ", "", -1)
+
 	// Continue here if everything is clean
 	newPlayer := playerId{
 		Id: id,
 		Region: region,
 		Name: name,
-		Normalized: strings.ToLower(name),
+		Normalized: normalizedName,
 	}
 	err = playerIds.Insert(newPlayer)
 

@@ -42,7 +42,7 @@ func (c View) Request(region, name string) revel.Result {
 
 	region = strings.ToLower(region)
 
-	name, player, new, err := query.GetStats(name, region)
+	resolvedName, player, new, err := query.GetStats(name, region)
 	if err != nil {
 		if (err.Error() == "database error") {
 			return c.RenderTemplate("errors/database.html")
@@ -57,9 +57,13 @@ func (c View) Request(region, name string) revel.Result {
 		}
 	}
 
+	if resolvedName != name {
+		return c.Redirect("/" + region + "/" + resolvedName)
+	}
+
 	c.RenderArgs["new"] = new
 	c.RenderArgs["player"] = player
-	c.RenderArgs["name"] = name
-	c.RenderArgs["titleName"] = name + " - LoL Cruncher"
+	c.RenderArgs["name"] = resolvedName
+	c.RenderArgs["titleName"] = resolvedName + " - LoL Cruncher"
 	return c.Render()
 }
