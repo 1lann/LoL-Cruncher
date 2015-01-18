@@ -30,7 +30,8 @@ var players *mgo.Collection
 var playerIds *mgo.Collection
 
 func isDisconnected(err string) bool {
-	if err == "EOF" || err == "no reachable servers" {
+	if err == "EOF" || err == "no reachable servers" ||
+		err == "Closed explicitly" {
 		return true
 	} else {
 		return false
