@@ -57,6 +57,13 @@ func Connect() {
 			return
 		}
 
+		databasePassword, hasPassword := revel.Config.String("database.password")
+
+		if !hasPassword {
+			revel.WARN.Println("No database.password in conf/app.conf, " +
+				"assuming development mode with no login.")
+		}
+
 		session, err := mgo.DialWithTimeout(databaseIp, time.Second*3)
 		if err != nil {
 			isConnecting = false
@@ -71,6 +78,15 @@ func Connect() {
 		session.SetSocketTimeout(time.Second*3)
 
 		activeSession = session
+
+		if hasPassword {
+			err = session.DB("cruncher").Login("webapp", databasePassword)
+			if err != nil {
+				revel.ERROR.Println("Database authentication failed! " +
+					"Assuming database is down.")
+				return
+			}
+		}
 
 		players = session.DB("cruncher").C("players")
 		playerIds = session.DB("cruncher").C("playerids")
