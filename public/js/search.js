@@ -101,7 +101,7 @@ var getNoResults = function() {
 var resultSource = '\
 <div class="result">\
 	<div class="container">\
-		<img src="http://avatar.leagueoflegends.com/{{regionCode}}/{{name}}.png">\
+		<img src="https://avatar.leagueoflegends.com/{{regionCode}}/{{name}}.png">\
 		<p class="username">{{name}}</p>\
 		<div class="region-wrapper">\
 			<p class="region">{{region}}</p>\
@@ -213,9 +213,9 @@ var displayResults = function(query) {
 
 		for (var r = 0; r < serverResult.length; r++) {
 			var arguments = {
-				"name": results[i],
-				"region": regionCodes[serverResult[r]],
-				"regionCode": serverResult[r],
+				name: results[i],
+				region: regionCodes[serverResult[r]],
+				regionCode: serverResult[r].toUpperCase(),
 			}
 
 			var resultElement = $(resultTemplate(arguments));
