@@ -18,8 +18,8 @@ Then, run `revel run cruncher` and navigate your browser to http://127.0.0.1:900
 
 - ~~Database structure~~
 - ~~Core functionality without cron jobs~~
-- Design pages
-- Add cron jobs
+- ~~Design pages~~
+- ~~Add cron jobs~~
 - Apply for deployment key
 - ???
 - Profit
@@ -40,5 +40,5 @@ This includes
 
 ### Why did I choose GNU Affero?
 
-Because I want people who make forks, improvements or distribute my work, also publish their source code for others to take.
+Because I want people who make forks, improvements or distribute my work, also publish their source code for others to take and learn from, to gain inspiration and knowledge.
 
