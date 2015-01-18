@@ -272,7 +272,7 @@ func hasBeenProcessed(games []string, query string) bool {
 }
 
 func GetNextUpdate(games []dataFormat.Game) time.Time {
-	checkIndex := int(math.Min(float64(4), float64(len(games) - 1)))
+	checkIndex := int(math.Min(float64(2), float64(len(games) - 1)))
 	intervalDuration := time.Since(games[checkIndex].Date)
 
 	if intervalDuration.Hours() > 24 {
