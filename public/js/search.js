@@ -101,7 +101,7 @@ var getNoResults = function() {
 var resultSource = '\
 <div class="result">\
 	<div class="container">\
-		<img src="https://avatar.leagueoflegends.com/{{regionCode}}/{{name}}.png">\
+		<img src="https://avatar.leagueoflegends.com/{{regionCode}}/{{imageName}}.png">\
 		<p class="username">{{name}}</p>\
 		<div class="region-wrapper">\
 			<p class="region">{{region}}</p>\
@@ -214,6 +214,7 @@ var displayResults = function(query) {
 		for (var r = 0; r < serverResult.length; r++) {
 			var arguments = {
 				name: results[i],
+				imageName: results[i].replace(" ", ""),
 				region: regionCodes[serverResult[r]],
 				regionCode: serverResult[r].toUpperCase(),
 			}
