@@ -33,6 +33,8 @@ var longMonitorRunning bool = false
 var ProcessingRunning bool = false
 
 func processPlayers(players []dataFormat.BasicPlayer) {
+	ProcessingRunning = true
+
 	for _, player := range players {
 		time.Sleep(time.Duration(2) * time.Second)
 
@@ -65,9 +67,13 @@ func processPlayers(players []dataFormat.BasicPlayer) {
 			revel.ERROR.Println("Non-ok response for storing player data")
 		}
 	}
+
+	ProcessingRunning = false
 }
 
 func processTiers(players []dataFormat.BasicPlayer) {
+	ProcessingRunning = true
+
 	for _, player := range players {
 		time.Sleep(time.Duration(2) * time.Second)
 
@@ -90,6 +96,8 @@ func processTiers(players []dataFormat.BasicPlayer) {
 			continue
 		}
 	}
+
+	ProcessingRunning = false
 }
 
 func RecordMonitor() {
@@ -111,9 +119,7 @@ func RecordMonitor() {
 			time.Sleep(time.Duration(10) * time.Second)
 		}
 
-		ProcessingRunning = true
-		processPlayers(players)
-		ProcessingRunning = false
+		go processPlayers(players)
 
 		time.Sleep(time.Duration(60) * time.Minute)
 	}
@@ -139,9 +145,7 @@ func LongTermMonitor() {
 			time.Sleep(time.Duration(10) * time.Second)
 		}
 
-		ProcessingRunning = true
-		processTiers(players)
-		ProcessingRunning = false
+		go processTiers(players)
 
 		time.Sleep(time.Duration(24) * time.Hour)
 	}
