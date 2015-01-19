@@ -58,7 +58,7 @@ func processPlayers(players []dataFormat.BasicPlayer) {
 		newPlayer.NextUpdate = crunch.GetNextUpdate(playerGames)
 
 		revel.INFO.Printf("Next update time in hours: %v",
-			newPlayer.NextUpdate)
+			time.Since(newPlayer.NextUpdate).Hours())
 
 		resp = database.StoreSummonerData(newPlayer)
 		if resp != database.Yes {

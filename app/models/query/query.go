@@ -93,7 +93,7 @@ func RegisterSummoner(name string, region string) (string, string,
 	newPlayer.NextUpdate = crunch.GetNextUpdate(games)
 
 	revel.INFO.Printf("Next update time for %v in hours: %v", newPlayer.Id,
-		newPlayer.NextUpdate)
+		time.Since(newPlayer.NextUpdate).Hours())
 
 	resp := database.StoreSummonerData(newPlayer)
 	if resp == database.Yes {
