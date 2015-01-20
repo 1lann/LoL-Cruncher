@@ -71,7 +71,7 @@ type gameHistory struct {
 
 func convertGame(game Game) dataFormat.Game {
 	isMatchedGame := (game.GameType == "MATCHED_GAME")
-	isClassicGame := (game.GameMode == "CLASSIC")
+	isClassicGame := (game.GameMode == "CLASSIC" || game.GameMode == "ARAM")
 
 	createTime := time.Unix(int64(game.CreateDate / 1000), 0)
 	createYear := strconv.Itoa(createTime.Year())

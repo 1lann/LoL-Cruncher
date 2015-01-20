@@ -24,14 +24,17 @@ import (
 )
 
 func chomp(playerData *dataFormat.Player, game dataFormat.Game) {
-	normalSR := game.Type == "NORMAL"
+	normalSR := (game.Type == "NORMAL")
 	rankedSR := (game.Type == "RANKED_SOLO_5x5") ||
 		(game.Type == "RANKED_PREMADE_5x5")
+	teamBuilder := (game.Type == "CAP_5x5")
 	teamSR := (game.Type == "RANKED_TEAM_5x5")
 	normalTT := (game.Type == "NORMAL_3x3")
 	rankedTT := (game.Type == "RANKED_PREMADE_3x3")
 	teamTT := (game.Type == "RANKED_TEAM_3x3")
-	if !(normalSR || rankedSR || teamSR || normalTT || rankedTT || teamTT) {
+	aram := (game.Type == "ARAM_UNRANKED_5x5")
+	if !(normalSR || rankedSR || teamSR || normalTT || rankedTT || teamTT ||
+		teamBuilder || aram) {
 		return
 	}
 
@@ -49,6 +52,10 @@ func chomp(playerData *dataFormat.Player, game dataFormat.Game) {
 		parsedType = "Twisted Treeline Ranked"
 	} else if teamTT {
 		parsedType = "Twisted Treeline Ranked Team"
+	} else if teamBuilder {
+		parsedType = "Team Builder"
+	} else if aram {
+		parsedType = "All Random All Mid (ARAM)"
 	}
 
 	allAll := playerData.All.All
