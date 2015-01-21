@@ -208,7 +208,7 @@ var displayResults = function(query) {
 		return;
 	}
 	var resultNumber = 0;
-	for (var i = 0; i < Math.min(results.length, 5); i++) {
+	for (var i = 0; i < Math.min(results.length, 20); i++) {
 		var serverResult = sortRegions(regionsDatabase[results[i]]);
 
 		for (var r = 0; r < serverResult.length; r++) {
