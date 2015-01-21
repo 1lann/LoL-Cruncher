@@ -62,25 +62,25 @@ var filtersAreaSource = '\
 			{{/each}}\
 		</div>\
 	</div>\
+	for\
+	<div class="ui inline dropdown" id="queue-dropdown">\
+		<input type="hidden" name="queue-type">\
+		<div class="text">all queues</div>\
+			<i class="dropdown icon"></i>\
+			<div class="menu">\
+			<div class="item active selected" data-text="all queues">all queues</div>\
+			{{#each queueTypes}}\
+			<div class="item" data-text="{{name}}">{{name}}</div>\
+			{{/each}}\
+		</div>\
+	</div>\
+	<span class="glyphicon glyphicon-info-sign" data-container="body" data-toggle="popover"\
+	 data-trigger="hover" data-placement="top" data-content="Customs, Dominion and featured gamemodes\'\
+	 statistics will not be recorded."></span>\
 </span>\
 <p class="delay">Statistics may be delayed by up to 24 hours</p>'
 
 var filtersAreaTemplate = Handlebars.compile(filtersAreaSource);
-
-var leftDropdownSource ='\
-<div class="ui inline dropdown">\
-	<input type="hidden" name="data-type">\
-	<div class="text title">All stats</div>\
-		<i class="dropdown icon"></i>\
-		<div class="menu">\
-		<div class="item active selected" data-text="All stats">All stats</div>\
-		{{#each gametype}}\
-		<div class="item" data-text="{{text}}">{{text}}</div>\
-		{{/each}}\
-	</div>\
-</div>'
-
-var leftDropdownTemplate = Handlebars.compile(leftDropdownSource);
 
 var championCardSource = '\
 <div class="stats-card">\
@@ -99,7 +99,7 @@ var championCardTemplate = Handlebars.compile(championCardSource);
 
 var generalCardSource = '\
 <div class="stats-card">\
-	{{{dropdown}}}\
+	<div class="title">All champions stats</div>\
 	<p class="subheading">{{dateFilter}}</p>\
 	<div class="stats-area">\
 	{{{stats}}}\

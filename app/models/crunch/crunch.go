@@ -41,230 +41,301 @@ func chomp(playerData *dataFormat.Player, game dataFormat.Game) {
 	var parsedType string
 
 	if normalSR {
-		parsedType = "Summoner's Rift Normals"
+		parsedType = "Summoner's Rift normals"
 	} else if rankedSR {
-		parsedType = "Summoner's Rift Ranked"
+		parsedType = "Summoner's Rift ranked"
 	} else if teamSR {
-		parsedType = "Summoner's Rift Ranked Team"
+		parsedType = "Summoner's Rift ranked team"
 	} else if normalTT {
-		parsedType = "Twisted Treeline Normals"
+		parsedType = "Twisted Treeline normals"
 	} else if rankedTT {
-		parsedType = "Twisted Treeline Ranked"
+		parsedType = "Twisted Treeline ranked"
 	} else if teamTT {
-		parsedType = "Twisted Treeline Ranked Team"
+		parsedType = "Twisted Treeline ranked team"
 	} else if teamBuilder {
-		parsedType = "Team Builder"
+		parsedType = "team builder"
 	} else if aram {
-		parsedType = "All Random All Mid (ARAM)"
+		parsedType = "all random all mid (ARAM)"
 	}
 
-	allAll := playerData.All.All
-	allGameType := playerData.All.GameTypeStats[parsedType]
-	allChampion := playerData.All.Champions[game.ChampionId]
+	allQAllM := playerData.AllQueues.AllMonths.All
+	allQAllMThisC := playerData.AllQueues.AllMonths.Champions[game.ChampionId]
+	allQThisM := playerData.AllQueues.MonthlyStats[game.YearMonth].All
+	allQThisMThisC := playerData.AllQueues.MonthlyStats[game.YearMonth].Champions[game.ChampionId]
 
-	monthlyAll := playerData.MonthlyStats[game.YearMonth].All
-	monthlyGameType := playerData.MonthlyStats[game.YearMonth].
-		GameTypeStats[parsedType]
-	monthlyAllChampion := playerData.MonthlyStats[game.YearMonth].
-		Champions[game.ChampionId]
-
+	thisQAllM := playerData.QueueStats[parsedType].AllMonths.All
+	thisQAllMThisC := playerData.QueueStats[parsedType].AllMonths.Champions[game.ChampionId]
+	thisQThisM := playerData.QueueStats[parsedType].MonthlyStats[game.YearMonth].All
+	thisQThisMThisC := playerData.QueueStats[parsedType].MonthlyStats[game.YearMonth].Champions[game.ChampionId]
 
 	if game.DidWin {
-		allAll.Wins++
-		allGameType.Wins++
-		allChampion.Wins++
+		allQAllM.Wins++
+		allQAllMThisC.Wins++
+		allQThisM.Wins++
+		allQThisMThisC.Wins++
 
-		monthlyAll.Wins++
-		monthlyGameType.Wins++
-		monthlyAllChampion.Wins++
+		thisQAllM.Wins++
+		thisQAllMThisC.Wins++
+		thisQThisM.Wins++
+		thisQThisMThisC.Wins++
+
 		if game.IsOnBlue {
-			allAll.Blue.Wins++
-			allGameType.Blue.Wins++
+			allQAllM.Blue.Wins++
+			allQThisM.Blue.Wins++
 
-			monthlyAll.Blue.Wins++
-			monthlyGameType.Blue.Wins++
+			thisQAllM.Blue.Wins++
+			thisQThisM.Blue.Wins++
 		} else {
-			allAll.Red.Wins++
-			allGameType.Red.Wins++
+			allQAllM.Red.Wins++
+			allQThisM.Red.Wins++
 
-			monthlyAll.Red.Wins++
-			monthlyGameType.Red.Wins++
+			thisQAllM.Red.Wins++
+			thisQThisM.Red.Wins++
 		}
 	} else {
-		allAll.Losses++
-		allGameType.Losses++
-		allChampion.Losses++
-		monthlyAll.Losses++
-		monthlyGameType.Losses++
-		monthlyAllChampion.Losses++
+		allQAllM.Losses++
+		allQAllMThisC.Losses++
+		allQThisM.Losses++
+		allQThisMThisC.Losses++
+
+		thisQAllM.Losses++
+		thisQAllMThisC.Losses++
+		thisQThisM.Losses++
+		thisQThisMThisC.Losses++
+
 		if game.IsOnBlue {
-			allAll.Blue.Losses++
-			allGameType.Blue.Losses++
+			allQAllM.Blue.Losses++
+			allQThisM.Blue.Losses++
 
-			monthlyAll.Blue.Losses++
-			monthlyGameType.Blue.Losses++
+			thisQAllM.Blue.Losses++
+			thisQThisM.Blue.Losses++
 		} else {
-			allAll.Red.Losses++
-			allGameType.Red.Losses++
+			allQAllM.Red.Losses++
+			allQThisM.Red.Losses++
 
-			monthlyAll.Red.Losses++
-			monthlyGameType.Red.Losses++
+			thisQAllM.Red.Losses++
+			thisQThisM.Red.Losses++
 		}
 	}
 
-	allAll.TimePlayed += game.Duration
-	allGameType.TimePlayed += game.Duration
-	allChampion.TimePlayed += game.Duration
+	allQAllM.TimePlayed += game.Duration
+	allQAllMThisC.TimePlayed += game.Duration
+	allQThisM.TimePlayed += game.Duration
+	allQThisMThisC.TimePlayed += game.Duration
 
-	monthlyAll.TimePlayed += game.Duration
-	monthlyGameType.TimePlayed += game.Duration
-	monthlyAllChampion.TimePlayed += game.Duration
-
-
-
-	allAll.Kills += game.Kills
-	allGameType.Kills += game.Kills
-	allChampion.Kills += game.Kills
-
-	monthlyAll.Kills += game.Kills
-	monthlyGameType.Kills += game.Kills
-	monthlyAllChampion.Kills += game.Kills
+	thisQAllM.TimePlayed += game.Duration
+	thisQAllMThisC.TimePlayed += game.Duration
+	thisQThisM.TimePlayed += game.Duration
+	thisQThisMThisC.TimePlayed += game.Duration
 
 
 
-	allAll.Assists += game.Assists
-	allGameType.Assists += game.Assists
-	allChampion.Assists += game.Assists
+	allQAllM.Kills += game.Kills
+	allQAllMThisC.Kills += game.Kills
+	allQThisM.Kills += game.Kills
+	allQThisMThisC.Kills += game.Kills
 
-	monthlyAll.Assists += game.Assists
-	monthlyGameType.Assists += game.Assists
-	monthlyAllChampion.Assists += game.Assists
-
-
-
-	allAll.Deaths += game.Deaths
-	allGameType.Deaths += game.Deaths
-	allChampion.Deaths += game.Deaths
-
-	monthlyAll.Deaths += game.Deaths
-	monthlyGameType.Deaths += game.Deaths
-	monthlyAllChampion.Deaths += game.Deaths
+	thisQAllM.Kills += game.Kills
+	thisQAllMThisC.Kills += game.Kills
+	thisQThisM.Kills += game.Kills
+	thisQThisMThisC.Kills += game.Kills
 
 
 
-	allAll.MinionsKilled += game.MinionsKilled
-	allGameType.MinionsKilled += game.MinionsKilled
-	allChampion.MinionsKilled += game.MinionsKilled
+	allQAllM.Assists += game.Assists
+	allQAllMThisC.Assists += game.Assists
+	allQThisM.Assists += game.Assists
+	allQThisMThisC.Assists += game.Assists
 
-	monthlyAll.MinionsKilled += game.MinionsKilled
-	monthlyGameType.MinionsKilled += game.MinionsKilled
-	monthlyAllChampion.MinionsKilled += game.MinionsKilled
-
-
-
-	allAll.MonstersKilled += game.MonstersKilled
-	allGameType.MonstersKilled += game.MonstersKilled
-	allChampion.MonstersKilled += game.MonstersKilled
-
-	monthlyAll.MonstersKilled += game.MonstersKilled
-	monthlyGameType.MonstersKilled += game.MonstersKilled
-	monthlyAllChampion.MonstersKilled += game.MonstersKilled
+	thisQAllM.Assists += game.Assists
+	thisQAllMThisC.Assists += game.Assists
+	thisQThisM.Assists += game.Assists
+	thisQThisMThisC.Assists += game.Assists
 
 
 
-	allAll.WardsPlaced += game.WardsPlaced
-	allGameType.WardsPlaced += game.WardsPlaced
-	allChampion.WardsPlaced += game.WardsPlaced
+	allQAllM.Deaths += game.Deaths
+	allQAllMThisC.Deaths += game.Deaths
+	allQThisM.Deaths += game.Deaths
+	allQThisMThisC.Deaths += game.Deaths
 
-	monthlyAll.WardsPlaced += game.WardsPlaced
-	monthlyGameType.WardsPlaced += game.WardsPlaced
-	monthlyAllChampion.WardsPlaced += game.WardsPlaced
-
-
-
-	allAll.DoubleKills += game.DoubleKills
-	allGameType.DoubleKills += game.DoubleKills
-
-	monthlyAll.DoubleKills += game.DoubleKills
-	monthlyGameType.DoubleKills += game.DoubleKills
+	thisQAllM.Deaths += game.Deaths
+	thisQAllMThisC.Deaths += game.Deaths
+	thisQThisM.Deaths += game.Deaths
+	thisQThisMThisC.Deaths += game.Deaths
 
 
 
-	allAll.TripleKills += game.TripleKills
-	allGameType.TripleKills += game.TripleKills
+	allQAllM.MinionsKilled += game.MinionsKilled
+	allQAllMThisC.MinionsKilled += game.MinionsKilled
+	allQThisM.MinionsKilled += game.MinionsKilled
+	allQThisMThisC.MinionsKilled += game.MinionsKilled
 
-	monthlyAll.TripleKills += game.TripleKills
-	monthlyGameType.TripleKills += game.TripleKills
-
-
-
-	allAll.QuadraKills += game.QuadraKills
-	allGameType.QuadraKills += game.QuadraKills
-
-	monthlyAll.QuadraKills += game.QuadraKills
-	monthlyGameType.QuadraKills += game.QuadraKills
+	thisQAllM.MinionsKilled += game.MinionsKilled
+	thisQAllMThisC.MinionsKilled += game.MinionsKilled
+	thisQThisM.MinionsKilled += game.MinionsKilled
+	thisQThisMThisC.MinionsKilled += game.MinionsKilled
 
 
 
-	allAll.PentaKills += game.PentaKills
-	allGameType.PentaKills += game.PentaKills
+	allQAllM.MonstersKilled += game.MonstersKilled
+	allQAllMThisC.MonstersKilled += game.MonstersKilled
+	allQThisM.MonstersKilled += game.MonstersKilled
+	allQThisMThisC.MonstersKilled += game.MonstersKilled
 
-	monthlyAll.PentaKills += game.PentaKills
-	monthlyGameType.PentaKills += game.PentaKills
-
-
-
-	allAll.GoldEarned += game.GoldEarned
-	allGameType.GoldEarned += game.GoldEarned
-
-	monthlyAll.GoldEarned += game.GoldEarned
-	monthlyGameType.GoldEarned += game.GoldEarned
+	thisQAllM.MonstersKilled += game.MonstersKilled
+	thisQAllMThisC.MonstersKilled += game.MonstersKilled
+	thisQThisM.MonstersKilled += game.MonstersKilled
+	thisQThisMThisC.MonstersKilled += game.MonstersKilled
 
 
-	allAll.WardsKilled += game.WardsKilled
-	allGameType.WardsKilled += game.WardsKilled
 
-	monthlyAll.WardsKilled += game.WardsKilled
-	monthlyGameType.WardsKilled += game.WardsKilled
+	allQAllM.WardsPlaced += game.WardsPlaced
+	allQAllMThisC.WardsPlaced += game.WardsPlaced
+	allQThisM.WardsPlaced += game.WardsPlaced
+	allQThisMThisC.WardsPlaced += game.WardsPlaced
 
-	// allAll := playerData.All.All
-	// allGameType := playerData.All.GameTypeStats[parsedType]
-	// allChampion := playerData.All.Champions[game.ChampionId]
+	thisQAllM.WardsPlaced += game.WardsPlaced
+	thisQAllMThisC.WardsPlaced += game.WardsPlaced
+	thisQThisM.WardsPlaced += game.WardsPlaced
+	thisQThisMThisC.WardsPlaced += game.WardsPlaced
 
-	// monthlyAll := playerData.MonthlyStats[game.YearMonth].All
-	// monthlyGameType := playerData.MonthlyStats[game.YearMonth].
-	// 	GameTypeStats[parsedType]
-	// monthlyAllChampion := playerData.MonthlyStats[game.YearMonth].
-	// 	Champions[game.ChampionId]
 
-	playerData.All.All = allAll
-	if playerData.All.GameTypeStats == nil {
-		playerData.All.GameTypeStats = make(map[string]dataFormat.DetailedNumberOf)
+	allQAllM.GoldEarned += game.GoldEarned
+	allQAllMThisC.GoldEarned += game.GoldEarned
+	allQThisM.GoldEarned += game.GoldEarned
+	allQThisMThisC.GoldEarned += game.GoldEarned
+
+	thisQAllM.GoldEarned += game.GoldEarned
+	thisQAllMThisC.GoldEarned += game.GoldEarned
+	thisQThisM.GoldEarned += game.GoldEarned
+	thisQThisMThisC.GoldEarned += game.GoldEarned
+
+
+
+	allQAllM.DoubleKills += game.DoubleKills
+	allQThisM.DoubleKills += game.DoubleKills
+
+	thisQAllM.DoubleKills += game.DoubleKills
+	thisQThisM.DoubleKills += game.DoubleKills
+
+
+
+	allQAllM.TripleKills += game.TripleKills
+	allQThisM.TripleKills += game.TripleKills
+
+	thisQAllM.TripleKills += game.TripleKills
+	thisQThisM.TripleKills += game.TripleKills
+
+
+
+	allQAllM.QuadraKills += game.QuadraKills
+	allQThisM.QuadraKills += game.QuadraKills
+
+	thisQAllM.QuadraKills += game.QuadraKills
+	thisQThisM.QuadraKills += game.QuadraKills
+
+
+
+	allQAllM.PentaKills += game.PentaKills
+	allQThisM.PentaKills += game.PentaKills
+
+	thisQAllM.PentaKills += game.PentaKills
+	thisQThisM.PentaKills += game.PentaKills
+
+
+
+	allQAllM.WardsKilled += game.WardsKilled
+	allQThisM.WardsKilled += game.WardsKilled
+
+	thisQAllM.WardsKilled += game.WardsKilled
+	thisQThisM.WardsKilled += game.WardsKilled
+
+
+	//
+	//	allQAllM 1/8
+	//
+	playerData.AllQueues.AllMonths.All = allQAllM
+
+	if playerData.AllQueues.AllMonths.Champions == nil {
+		playerData.AllQueues.AllMonths.Champions =
+			make(map[string]dataFormat.BasicNumberOf)
 	}
-	playerData.All.GameTypeStats[parsedType] = allGameType
-	if playerData.All.Champions == nil {
-		playerData.All.Champions = make(map[string]dataFormat.BasicNumberOf)
+
+	//
+	//	allQAllMThisC 2/8
+	//
+	playerData.AllQueues.AllMonths.Champions[game.ChampionId] = allQAllMThisC
+
+	if playerData.AllQueues.MonthlyStats == nil {
+		playerData.AllQueues.MonthlyStats = make(map[string]dataFormat.Stats)
 	}
-	playerData.All.Champions[game.ChampionId] = allChampion
 
-	if playerData.MonthlyStats == nil {
-		playerData.MonthlyStats = make(map[string]dataFormat.Stats)
+	allQueuesThisMonth := playerData.AllQueues.MonthlyStats[game.YearMonth]
+
+	//
+	//	allQThisM 3/8
+	//
+	allQueuesThisMonth.All = allQThisM
+
+	if allQueuesThisMonth.Champions == nil {
+		allQueuesThisMonth.Champions = make(map[string]dataFormat.BasicNumberOf)
 	}
 
-	monthlyCopy := playerData.MonthlyStats[game.YearMonth]
-	monthlyCopy.All = monthlyAll
+	//
+	//	allQThisMThisC 4/8
+	//
+	allQueuesThisMonth.Champions[game.ChampionId] = allQThisMThisC
 
-	if monthlyCopy.GameTypeStats == nil {
-		monthlyCopy.GameTypeStats = make(map[string]dataFormat.DetailedNumberOf)
+
+	if playerData.QueueStats == nil {
+		playerData.QueueStats = make(map[string]dataFormat.QueueStats)
 	}
-	monthlyCopy.GameTypeStats[parsedType] = monthlyGameType
 
-	if monthlyCopy.Champions == nil {
-		monthlyCopy.Champions = make(map[string]dataFormat.BasicNumberOf)
+	thisQueueStats := playerData.QueueStats[parsedType]
+
+	//
+	//	thisQAllM 5/8
+	//
+	thisQueueStats.AllMonths.All = thisQAllM
+
+	if thisQueueStats.AllMonths.Champions == nil {
+		thisQueueStats.AllMonths.Champions =
+			make(map[string]dataFormat.BasicNumberOf)
 	}
-	monthlyCopy.Champions[game.ChampionId] = monthlyAllChampion
 
-	playerData.MonthlyStats[game.YearMonth] = monthlyCopy
+	//
+	// thisQAllMThisC 6/8
+	//
+	thisQueueStats.AllMonths.Champions[game.ChampionId] = thisQAllMThisC
+
+	if thisQueueStats.MonthlyStats == nil {
+		thisQueueStats.MonthlyStats = make(map[string]dataFormat.Stats)
+	}
+
+	thisQueueThisMonthStats := thisQueueStats.MonthlyStats[game.YearMonth]
+
+	//
+	//	thisQThisM 7/8
+	//
+	thisQueueThisMonthStats.All = thisQThisM
+
+	if thisQueueThisMonthStats.Champions == nil {
+		thisQueueThisMonthStats.Champions =
+			make(map[string]dataFormat.BasicNumberOf)
+	}
+
+	//
+	//	thisQThisMThisC 8/8
+	//
+	thisQueueThisMonthStats.Champions[game.ChampionId] = thisQThisMThisC
+
+	//
+	//	Put it back together
+	//
+	playerData.AllQueues.MonthlyStats[game.YearMonth] = allQueuesThisMonth
+	thisQueueStats.MonthlyStats[game.YearMonth] = thisQueueThisMonthStats
+	playerData.QueueStats[parsedType] = thisQueueStats
 
 	return
 }
