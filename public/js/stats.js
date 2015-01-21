@@ -225,20 +225,44 @@ var generateGeneralStats = function() {
 			label: "Average game time in minutes",
 			data: Math.round(timePlayed/numGames/60),
 		});
-		outputStats.push({
-			label: "Winrate",
-			data: Math.round((statsSource.Wins/numGames) * 100) + "%",
-		});
+		if (numGames <= 0) {
+			outputStats.push({
+				label: "Winrate",
+				data: "0%",
+			});
+		} else {
+			outputStats.push({
+				label: "Winrate",
+				data: Math.round((statsSource.Wins/numGames) * 100) + "%",
+			});
+		}
+
 		var redGames = statsSource.Red.Wins + statsSource.Red.Losses
-		outputStats.push({
-			label: "Red team winrate",
-			data: Math.round((statsSource.Red.Wins/redGames) * 100) + "%",
-		});
+		if (redGames <= 0) {
+			outputStats.push({
+				label: "Red team winrate",
+				data: "0%",
+			});
+		} else {
+			outputStats.push({
+				label: "Red team winrate",
+				data: Math.round((statsSource.Red.Wins/redGames) * 100) + "%",
+			});
+		}
+
 		var blueGames = statsSource.Blue.Wins + statsSource.Blue.Losses
-		outputStats.push({
-			label: "Blue team winrate",
-			data: Math.round((statsSource.Blue.Wins/blueGames) * 100) + "%",
-		});
+		if (blueGames <= 0) {
+			outputStats.push({
+				label: "Blue team winrate",
+				data: "0%",
+			});
+		} else {
+			outputStats.push({
+				label: "Blue team winrate",
+				data: Math.round((statsSource.Blue.Wins/blueGames) * 100) + "%",
+			});
+		}
+
 		outputStats.push({
 			label: "Minions killed per 10 minutes",
 			data: oneDecRound(statsSource.MinionsKilled/(timePlayed/600)),
@@ -332,10 +356,17 @@ var generateChampionStats = function(championId) {
 			label: "Average game time in minutes",
 			data: Math.round(timePlayed/numGames/60),
 		});
-		outputStats.push({
-			label: "Winrate",
-			data: Math.round((statsSource.Wins/numGames) * 100) + "%",
-		});
+		if (numGames <= 0) {
+			outputStats.push({
+				label: "Winrate",
+				data: "0%",
+			});
+		} else {
+			outputStats.push({
+				label: "Winrate",
+				data: Math.round((statsSource.Wins/numGames) * 100) + "%",
+			});
+		}
 		outputStats.push({
 			label: "Minions killed per 10 minutes",
 			data: oneDecRound(statsSource.MinionsKilled/(timePlayed/600)),
