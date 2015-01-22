@@ -117,7 +117,8 @@ var loadPlayersDatabase = function(database) {
 				"Try refreshing the page.");
 			return;
 		}
-		readDatabase = parseWrapper(rawDatabase)
+		expandedDatabase = LZString.decompress(rawDatabase)
+		readDatabase = parseWrapper(expandedDatabase)
 		if (typeof(readDatabase) == "undefined" || !readDatabase) {
 			localStorage.removeItem("players");
 			localStorage.removeItem("playersUpdate");
@@ -171,9 +172,11 @@ var loadPlayersDatabase = function(database) {
 			regions: regionsDatabase
 		}
 
+		var textDatabase = JSON.stringify(storeDatabase);
+
 		console.log("Stored updated players database")
 		localStorage["playersUpdate"] = parsedDatabase.Time.toString();
-		localStorage["players"] = JSON.stringify(storeDatabase);
+		localStorage["players"] = LZString.compress(textDatabase);
 	}
 }
 
@@ -182,8 +185,15 @@ var checkPlayersDatabase = function() {
 			typeof(localStorage["players"]) == "undefined") {
 		lastPlayerUpdate = 0;
 	} else {
-		// Preload the database from localStorage
-		loadPlayersDatabase();
+		// Check for legacy non-compression
+		var compressionTest = localStorage["players"];
+		if (compressionTest.indexOf('{"players":') == 0) {
+			localStorage.removeItem("players");
+			lastPlayerUpdate = 0;
+		} else {
+			// Preload the database from localStorage
+			loadPlayersDatabase();
+		}
 	}
 	$.post("/players", {"lastupdate": lastPlayerUpdate}, null, "text")
 	.done(function(resp){
