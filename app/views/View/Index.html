@@ -1,4 +1,5 @@
 {{set . "title" "LoL Cruncher"}}
+{{append . "pageScripts" "bootstrap.min.js"}}
 {{append . "pageScripts" "handlebars-v2.0.0.js"}}
 {{append . "pageScripts" "database.js"}}
 {{append . "pageScripts" "search.js"}}
@@ -24,8 +25,7 @@
 		</p>
 	</div>
 	<div class="search-container">
-		<label class="centered input-label">Enter Summoner Name</label>
-		<input class="search-box" type="text" name="query" id="fake-search" autocomplete="off">
+		<input class="search-box" type="text" name="query" id="fake-search" autocomplete="off" placeholder="Enter summoner name">
 	</div>
 </div>
 <div class="search">
