@@ -17,6 +17,9 @@
 
 // jscs: disable
 
+var playersDatabase = [];
+var regionsDatabase = {};
+
 
 var realSearch = $("#real-search")
 
