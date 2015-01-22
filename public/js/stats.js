@@ -544,20 +544,23 @@ var regenerate = function() {
 	generateChampionCards();
 }
 
-generateFiltersArea();
-selectCollection();
-indexChampions();
+var onDatabaseLoaded = function() {
+	console.log("Database loaded, loading player data...")
 
-$("#champion-input").on("input", function() {
-	generateChampionCards();
-})
+	generateFiltersArea();
+	selectCollection();
 
-regenerate();
+	regenerate();
 
-$(".profile").append(profileTemplate({
-	username: summonerName,
-	imageName: summonerName.replace(" ", ""),
-	region: regionCodes[playerData.Region],
-	regionCode: playerData.Region.toUpperCase(),
-}));
+	$("#champion-input").on("input", function() {
+		generateChampionCards();
+	})
+
+	$(".profile").append(profileTemplate({
+		username: summonerName,
+		imageName: summonerName.replace(" ", ""),
+		region: regionCodes[playerData.Region],
+		regionCode: playerData.Region.toUpperCase(),
+	}));
+}
 

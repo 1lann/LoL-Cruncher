@@ -34,6 +34,10 @@ var playersDatabase = [];
 var storedVersion = localStorage["version"]
 var lastPlayerUpdate = localStorage["playersUpdate"]
 
+if (typeof(onDatabaseLoaded) == "undefined" || !onDatabaseLoaded) {
+	onDatabaseLoaded = function() {}
+}
+
 var parseWrapper = function(content) {
 	try {
 		var ret = JSON.parse(content);
@@ -55,6 +59,7 @@ var processDatabase = function(database) {
 
 	localStorage["version"] = gameVersion
 	localStorage["champions"] = JSON.stringify(championsDatabase)
+	onDatabaseLoaded();
 }
 
 var buildChampionsDatabase = function() {
@@ -93,6 +98,7 @@ var checkChampionsDatabase = function() {
 				output && Object.keys(output).length > 100) {
 				console.log("Using champion database from local storage");
 				championsDatabase = output;
+				onDatabaseLoaded();
 			} else {
 				console.log("Tampered champion database? Rebuiliding...");
 				buildChampionsDatabase();
@@ -134,8 +140,9 @@ var loadPlayersDatabase = function(database) {
 		playersDatabase = readDatabase.players;
 		regionsDatabase = readDatabase.regions;
 	} else {
-		// Process the database... :(
 		// The array is already sorted on the server. I think.
+		playersDatabase = [];
+		regionsDatabase = {};
 		var parsedDatabase = parseWrapper(database)
 		if (typeof(parsedDatabase) == "undefined" || !parsedDatabase ||
 				typeof(parsedDatabase.Players) == "undefined" ||
@@ -174,20 +181,17 @@ var checkPlayersDatabase = function() {
 	if (typeof(lastPlayerUpdate) == "undefined" ||
 			typeof(localStorage["players"]) == "undefined") {
 		lastPlayerUpdate = 0;
+	} else {
+		// Preload the database from localStorage
+		loadPlayersDatabase();
 	}
 	$.post("/players", {"lastupdate": lastPlayerUpdate}, null, "text")
 	.done(function(resp){
-		if (resp == "false") {
-			loadPlayersDatabase();
-		} else if (resp == "error") {
+		if (resp == "error") {
 			alert("Server error while requesting for players database!");
-		} else {
+		} else if (resp != "false") {
 			loadPlayersDatabase(resp);
 		}
-	})
-	.fail(function(resp){
-		alert("Failed to download players database!")
-		loadPlayersDatabase();
 	})
 }
 
