@@ -17,21 +17,19 @@
 
 // jscs: disable
 
-$(".ui.dropdown").dropdown();
-
-var selectedDate = "since " + playerData.RecordStart;
-var selectedFilter = "All"
+var startDate = "since " + playerData.RecordStart;
+var selectedDate = startDate;
+var selectedFilter = "All";
+var selectedQueue = "all queues"
 
 var templateMonths = [];
-var dataMonths = {};
-dataMonths[selectedDate] = playerData.All;
-
-var selectedGameType = "All stats"
+var templateQueues = [];
+var monthResolver = {};
 
 var championsSearchIndex = {};
 var championFilter = ""
 
-var selectedCollection = dataMonths[selectedDate];
+var selectedCollection;
 
 var monthsKeys = {
 	"1": "January",
@@ -56,12 +54,36 @@ var getStringedDate = function(date) {
 }
 
 var loadMonths = function() {
-	var months = Object.keys(playerData.MonthlyStats)
+	var months = Object.keys(playerData.AllQueues.MonthlyStats)
 	months.sort();
 	for (var i = 0; i < months.length; i++) {
 		var monthKey = "for " + getStringedDate(months[i]);
-		dataMonths[monthKey] = playerData.MonthlyStats[months[i]];
+		monthResolver[monthKey] = months[i];
 		templateMonths.push({text: monthKey});
+	}
+}
+
+var loadQueues = function() {
+	var queues = Object.keys(playerData.QueueStats)
+	for (var i = 0; i < queues.length; i++) {
+		templateQueues.push({name: queues[i]})
+	}
+}
+
+var selectCollection = function() {
+	var queueSelection;
+
+	if (selectedQueue == "all queues") {
+		queueSelection = playerData.AllQueues;
+	} else {
+		queueSelection = playerData.QueueStats[selectedQueue];
+	}
+
+	if (selectedDate == startDate) {
+		selectedCollection = queueSelection.AllMonths
+	} else {
+		selectedCollection =
+			queueSelection.MonthlyStats[monthResolver[selectedDate]]
 	}
 }
 
@@ -118,10 +140,6 @@ var oneDecRound = function(num) {
 var generateGeneralStats = function() {
 	var outputStats = [];
 	var statsSource = selectedCollection.All
-
-	if (selectedGameType != "All stats") {
-		statsSource = selectedCollection.GameTypeStats[selectedGameType];
-	}
 
 	var spentPlaying = timePlayingTemplate({
 		time: getHumanTime(statsSource.TimePlayed)
@@ -207,20 +225,44 @@ var generateGeneralStats = function() {
 			label: "Average game time in minutes",
 			data: Math.round(timePlayed/numGames/60),
 		});
-		outputStats.push({
-			label: "Winrate",
-			data: Math.round((statsSource.Wins/numGames) * 100) + "%",
-		});
+		if (numGames <= 0) {
+			outputStats.push({
+				label: "Winrate",
+				data: "0%",
+			});
+		} else {
+			outputStats.push({
+				label: "Winrate",
+				data: Math.round((statsSource.Wins/numGames) * 100) + "%",
+			});
+		}
+
 		var redGames = statsSource.Red.Wins + statsSource.Red.Losses
-		outputStats.push({
-			label: "Red team winrate",
-			data: Math.round((statsSource.Red.Wins/redGames) * 100) + "%",
-		});
+		if (redGames <= 0) {
+			outputStats.push({
+				label: "Red team winrate",
+				data: "0%",
+			});
+		} else {
+			outputStats.push({
+				label: "Red team winrate",
+				data: Math.round((statsSource.Red.Wins/redGames) * 100) + "%",
+			});
+		}
+
 		var blueGames = statsSource.Blue.Wins + statsSource.Blue.Losses
-		outputStats.push({
-			label: "Blue team winrate",
-			data: Math.round((statsSource.Blue.Wins/blueGames) * 100) + "%",
-		});
+		if (blueGames <= 0) {
+			outputStats.push({
+				label: "Blue team winrate",
+				data: "0%",
+			});
+		} else {
+			outputStats.push({
+				label: "Blue team winrate",
+				data: Math.round((statsSource.Blue.Wins/blueGames) * 100) + "%",
+			});
+		}
+
 		outputStats.push({
 			label: "Minions killed per 10 minutes",
 			data: oneDecRound(statsSource.MinionsKilled/(timePlayed/600)),
@@ -314,10 +356,17 @@ var generateChampionStats = function(championId) {
 			label: "Average game time in minutes",
 			data: Math.round(timePlayed/numGames/60),
 		});
-		outputStats.push({
-			label: "Winrate",
-			data: Math.round((statsSource.Wins/numGames) * 100) + "%",
-		});
+		if (numGames <= 0) {
+			outputStats.push({
+				label: "Winrate",
+				data: "0%",
+			});
+		} else {
+			outputStats.push({
+				label: "Winrate",
+				data: Math.round((statsSource.Wins/numGames) * 100) + "%",
+			});
+		}
 		outputStats.push({
 			label: "Minions killed per 10 minutes",
 			data: oneDecRound(statsSource.MinionsKilled/(timePlayed/600)),
@@ -350,29 +399,12 @@ var generateChampionStats = function(championId) {
 var generateGeneralArea = function() {
 	$(".general-card").empty();
 
-	var gameTypes = [];
-	for (var gameType in selectedCollection.GameTypeStats) {
-		gameTypes.push({text: gameType});
-	}
-
-	var leftDropdown = leftDropdownTemplate({
-		gametype: gameTypes,
-	});
-
 	var statsArea = generateGeneralStats();
 
 	var generalArea = $(generalCardTemplate({
-		dateFilter: selectedDate,
-		dropdown: leftDropdown,
+		dateFilter: selectedDate + " for " + selectedQueue,
 		stats: statsArea,
 	}))
-
-	generalArea.find(".dropdown").dropdown({
-		onChange: function(value, text) {
-			selectedGameType = text;
-			updateGeneralArea();
-		}
-	})
 
 	$(".general-card").append(generalArea);
 }
@@ -384,10 +416,12 @@ var updateGeneralArea = function() {
 }
 
 var generateFiltersArea = function() {
+	loadQueues();
 	loadMonths();
 	var filtersArea = $(filtersAreaTemplate({
 		month: templateMonths,
-		start: playerData.RecordStart
+		start: playerData.RecordStart,
+		queueTypes: templateQueues,
 	}));
 
 	filtersArea.find("#general-dropdown").dropdown({
@@ -400,10 +434,18 @@ var generateFiltersArea = function() {
 	filtersArea.find("#date-dropdown").dropdown({
 		onChange: function(value, text) {
 			selectedDate = text;
-			selectedCollection = dataMonths[selectedDate];
 			regenerate();
 		}
 	});
+
+	filtersArea.find("#queue-dropdown").dropdown({
+		onChange: function(value, text) {
+			selectedQueue = text;
+			regenerate();
+		}
+	});
+
+	filtersArea.find(".glyphicon.glyphicon-info-sign").popover();
 
 	$(".filters-area").append(filtersArea);
 }
@@ -474,7 +516,7 @@ var generateChampionCards = function() {
 		var renderArgs = {
 			imageName: championsDatabase[results[i]].image,
 			displayName: championsDatabase[results[i]].name,
-			dateFilter: selectedDate,
+			dateFilter: selectedDate + " for " + selectedQueue,
 			stats: generateChampionStats(results[i]),
 		}
 		var championCard = championCardTemplate(renderArgs);
@@ -496,11 +538,14 @@ var generateChampionCards = function() {
 }
 
 var regenerate = function() {
+	selectCollection();
+	indexChampions();
 	generateGeneralArea();
 	generateChampionCards();
 }
 
 generateFiltersArea();
+selectCollection();
 indexChampions();
 
 $("#champion-input").on("input", function() {

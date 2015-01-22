@@ -53,10 +53,7 @@ type BasicNumberOf struct {
 	Kills uint32
 	Assists uint32
 	Deaths uint32
-	// DoubleKills uint32
-	// TripleKills uint32
-	// QuadraKills uint32
-	// PentaKills uint32
+	GoldEarned uint32
 	MinionsKilled uint32
 	MonstersKilled uint32
 	WardsPlaced uint32
@@ -64,8 +61,12 @@ type BasicNumberOf struct {
 
 type Stats struct {
 	All DetailedNumberOf
-	GameTypeStats map[string]DetailedNumberOf
 	Champions map[string]BasicNumberOf
+}
+
+type QueueStats struct {
+	AllMonths Stats
+	MonthlyStats map[string]Stats
 }
 
 type Player struct {
@@ -76,8 +77,8 @@ type Player struct {
 	NextUpdate time.Time
 	NextLongUpdate time.Time
 	ProcessedGames []string
-	All Stats
-	MonthlyStats map[string]Stats
+	AllQueues QueueStats
+	QueueStats map[string]QueueStats
 }
 
 type BasicPlayer struct {
