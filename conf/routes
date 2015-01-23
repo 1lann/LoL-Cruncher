@@ -5,6 +5,7 @@
 module:testrunner
 
 GET     /                                       View.Index
+GET		/about									View.About
 POST	/players								Data.CheckDatabaseUpdates
 
 # Ignore favicon requests

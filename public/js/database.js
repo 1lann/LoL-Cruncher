@@ -205,6 +205,5 @@ var checkPlayersDatabase = function() {
 	})
 }
 
-$(".glyphicon.glyphicon-question-sign").popover();
 checkChampionsDatabase();
 checkPlayersDatabase();

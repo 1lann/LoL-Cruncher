@@ -31,6 +31,10 @@ func (c View) Index() revel.Result {
 	return c.Render()
 }
 
+func (c View) About() revel.Result {
+	return c.Render()
+}
+
 func (c View) Request(region, name string) revel.Result {
 	if !(region == "na" || region == "euw" || region == "eune" ||
 			region == "lan" || region == "las" || region == "oce" ||
