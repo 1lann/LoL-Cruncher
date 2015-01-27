@@ -20,7 +20,7 @@ Then, run `revel run cruncher` and navigate your browser to http://127.0.0.1:900
 - ~~Core functionality without cron jobs~~
 - ~~Design pages~~
 - ~~Add cron jobs~~
-- Apply for deployment key
+- Apply for production key
 - ???
 - Profit
 
