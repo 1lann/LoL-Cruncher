@@ -20,7 +20,8 @@
 var startDate = "since " + playerData.RecordStart;
 var selectedDate = startDate;
 var selectedFilter = "All";
-var selectedQueue = "all queues"
+var selectedQueue = "all queues";
+var selectedDisplay = "cards";
 
 var templateMonths = [];
 var templateQueues = [];
@@ -301,6 +302,8 @@ var generateGeneralStats = function() {
 }
 
 var generateChampionStats = function(championId) {
+	// TODO: Add gold stats
+
 	var outputStats = [];
 	var statsSource = selectedCollection.Champions[championId];
 
@@ -396,6 +399,8 @@ var generateChampionStats = function(championId) {
 	return spentPlaying + statsTemplate({statsRow: outputStats});
 }
 
+var generate
+
 var generateGeneralArea = function() {
 	$(".general-card").empty();
 
@@ -428,21 +433,32 @@ var generateFiltersArea = function() {
 		onChange: function(value, text) {
 			selectedFilter = text;
 			regenerate();
-		}
+		},
+		on: "hover"
 	});
 
 	filtersArea.find("#date-dropdown").dropdown({
 		onChange: function(value, text) {
 			selectedDate = text;
 			regenerate();
-		}
+		},
+		on: "hover"
 	});
 
 	filtersArea.find("#queue-dropdown").dropdown({
 		onChange: function(value, text) {
 			selectedQueue = text;
 			regenerate();
-		}
+		},
+		on: "hover"
+	});
+
+	filtersArea.find("#display-dropdown").dropdown({
+		onChange: function(value, text) {
+			selectedDisplay = text;
+			regenerate();
+		},
+		on: "hover"
 	});
 
 	filtersArea.find(".glyphicon.glyphicon-info-sign").popover();
@@ -537,11 +553,123 @@ var generateChampionCards = function() {
 	}
 }
 
+var generateTable = function() {
+	$(".stats-table-container").empty();
+
+	var stats = [];
+	var tableHeader = "";
+
+	if (selectedFilter == "All") {
+		tableHeader = tableAllHeader;
+
+		for (var championId in selectedCollection.Champions) {
+			var statsSource = selectedCollection.Champions[championId];
+
+			var renderArgs = {
+				imageName: championsDatabase[championId].image,
+				championName: championsDatabase[championId].name,
+				games: (statsSource.Wins + statsSource.Losses).toString(),
+				wins: statsSource.Wins.toString(),
+				losses: statsSource.Losses.toString(),
+				minions: statsSource.MinionsKilled.toString(),
+				jungle: statsSource.MonstersKilled.toString(),
+				gold: getGoldAmount(statsSource.GoldEarned),
+				wards: statsSource.WardsPlaced.toString(),
+				kills: statsSource.Kills.toString(),
+				deaths: statsSource.Deaths.toString(),
+				assists: statsSource.Assists.toString()
+			}
+
+			stats.push({stats: tableRowTemplate(renderArgs)});
+		}
+	} else if (selectedFilter == "Rates/average") {
+		tableHeader = tableRatesHeader;
+
+		for (var championId in selectedCollection.Champions) {
+			var statsSource = selectedCollection.Champions[championId];
+
+			var numGames = statsSource.Wins + statsSource.Losses;
+			var timePlayed = statsSource.TimePlayed;
+
+			var winrate = "0%";
+			if (numGames > 0) {
+				winrate = Math.round((statsSource.Wins/numGames) * 100) + "%";
+			}
+
+			var renderArgs = {
+				imageName: championsDatabase[championId].image,
+				championName: championsDatabase[championId].name,
+				games: numGames.toString(),
+				wins: winrate,
+				minions: oneDecRound(statsSource.MinionsKilled/(timePlayed/600)),
+				jungle: oneDecRound(statsSource.MonstersKilled/(timePlayed/600)),
+				gold: getGoldAmount(statsSource.GoldEarned/(timePlayed/600)),
+				wards: oneDecRound(statsSource.WardsPlaced/numGames),
+				kills: oneDecRound(statsSource.Kills/numGames),
+				deaths: oneDecRound(statsSource.Deaths/numGames),
+				assists: oneDecRound(statsSource.Assists/numGames)
+			}
+
+			stats.push({stats: tableRowTemplate(renderArgs)});
+		}
+	}
+
+	var renderArgs = {
+		tableHeader: tableHeader,
+		championStats: stats
+	}
+
+	var tableElement = $(tableStatsTemplate(renderArgs));
+
+	$(".stats-table-container").append(tableElement);
+	$(".stats-table-container").scroll(function() {
+		$(window).trigger("resize.stickyTableHeaders");
+	})
+
+	tableElement.stickyTableHeaders();
+
+	if (selectedFilter == "All") {
+		tableElement.tablesorter({
+			sortList: [[2, 1]],
+			headers: {
+				0: {
+					sorter: false
+				},
+				7: {
+					sorter: "gold"
+				}
+			}
+		});
+	} else if (selectedFilter == "Rates/average") {
+		tableElement.tablesorter({
+			sortList: [[2, 1]],
+			headers: {
+				0: {
+					sorter: false
+				},
+				6: {
+					sorter: "gold"
+				}
+			}
+		});
+	}
+}
+
 var regenerate = function() {
 	selectCollection();
-	indexChampions();
-	generateGeneralArea();
-	generateChampionCards();
+
+	if (selectedDisplay == "cards") {
+		$("#table-area").hide();
+		$("#cards-area").show();
+		indexChampions();
+		generateGeneralArea();
+		generateChampionCards();
+	} else {
+		$("#cards-area").hide();
+		$("#table-area").show();
+
+		generateTable();
+	}
 }
 
 var onDatabaseLoaded = function() {
@@ -563,4 +691,25 @@ var onDatabaseLoaded = function() {
 		regionCode: playerData.Region.toUpperCase(),
 	}));
 }
+
+$.tablesorter.addParser({
+	// set a unique id
+	id: "gold",
+	is: function(s) {
+		// return false so this parser is not auto detected
+		return false;
+	},
+	format: function(s) {
+		// format your data for normalization
+		if (s.indexOf("k") > 0) {
+			return Math.round(parseFloat(s) * 1000);
+		} else {
+			return Math.round(parseFloat(s) * 1000000)
+		}
+	},
+	// set type, either numeric or text
+	type: "numeric"
+});
+
+$.tablesorter.defaults.sortInitialOrder = "desc";
 

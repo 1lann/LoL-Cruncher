@@ -197,4 +197,82 @@
 		font-weight: 100;
 		color: #aaa;
 	}
+
+	.stats-table-container {
+		overflow: scroll;
+
+		table {
+			font-size: 18px;
+		}
+
+		td {
+			height: 30px;
+			vertical-align: middle;
+
+			img {
+				height: 30px;
+			}
+		}
+
+		.headerSortDown::after {
+			font-family: "Glyphicons Halflings";
+			font-size: 12px;
+			content: "\e114";
+			margin-left: 5px;
+		}
+
+		.headerSortUp::after {
+			font-family: "Glyphicons Halflings";
+			font-size: 12px;
+			content: "\e113";
+			margin-left: 5px;
+		}
+
+		tfoot {
+			td {
+				border-top-width: 2px;
+			}
+			font-weight: bold;
+		}
+
+		thead {
+			background-color: white;
+		}
+
+		.won {
+			color: #4CAF50;
+		}
+
+		.lost {
+			color: #F44336;
+		}
+
+		.minions {
+			color: #2196F3;
+		}
+
+		.jungle {
+			color: #9C27B0;
+		}
+
+		.gold {
+			color: #FF9800;
+		}
+
+		.wards {
+			color: #8BC34A;
+		}
+
+		.kills {
+			color: #4CAF50;
+		}
+
+		.deaths {
+			color: #F44336;
+		}
+
+		.assists {
+			color: #FF9800;
+		}
+	}
 }

@@ -78,6 +78,19 @@ var filtersAreaSource = '\
 	 data-trigger="hover" data-placement="top" data-content="Customs, Dominion and featured gamemodes\'\
 	 statistics will not be recorded."></span>\
 </span>\
+<br>\
+<span>\
+	Display statistics as\
+	<div class="ui inline dropdown" id="display-dropdown">\
+		<input type="hidden" name="display-type">\
+		<div class="text">cards</div>\
+			<i class="dropdown icon"></i>\
+			<div class="menu">\
+			<div class="item active selected" data-text="cards">cards</div>\
+			<div class="item" data-text="a table">a table</div>\
+		</div>\
+	</div>\
+</span>\
 <p class="delay">Statistics may be delayed by up to 24 hours</p>'
 
 var filtersAreaTemplate = Handlebars.compile(filtersAreaSource);
@@ -116,3 +129,65 @@ var profileSource = '\
 </div>'
 
 var profileTemplate = Handlebars.compile(profileSource);
+
+var tableAllHeader = '\
+<th></th> <!-- Image -->\
+<th>Champion</th>\
+<th>Played</th>\
+<th class="won">Won</th>\
+<th class="lost">Lost</th>\
+<th class="minions">Minions</th>\
+<th class="jungle">Jungle</th>\
+<th class="gold">Gold</th>\
+<th class="wards">Wards</th>\
+<th class="kills">Kills</th>\
+<th class="deaths">Deaths</th>\
+<th class="assists">Assists</th>'
+
+var tableRatesHeader = '\
+<th></th> <!-- Image -->\
+<th>Champion</th>\
+<th>Played</th>\
+<th class="won">Winrate</th>\
+<th class="minions">Minions/10m</th>\
+<th class="jungle">Jungle/10m</th>\
+<th class="gold">Gold/10m</th>\
+<th class="wards">Wards</th>\
+<th class="kills">Kills</th>\
+<th class="deaths">Deaths</th>\
+<th class="assists">Assists</th>'
+
+var tableStatsSource = '\
+<table class="table" id="stats-table">\
+<thead>\
+	<tr>\
+		{{{tableHeader}}}\
+	</tr>\
+</thead>\
+{{#each championStats}}\
+<tr>\
+{{{stats}}}\
+</tr>\
+{{/each}}\
+</table>'
+
+
+var tableStatsTemplate = Handlebars.compile(tableStatsSource);
+
+var tableRowSource = '\
+<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/{{imageName}}"></td>\
+<td>{{championName}}</td>\
+<td>{{games}}</td>\
+<td class="won">{{wins}}</td>\
+{{#if losses}}\
+<td class="lost">{{losses}}</td>\
+{{/if}}\
+<td class="minions">{{minions}}</td>\
+<td class="jungle">{{jungle}}</td>\
+<td class="gold">{{gold}}</td>\
+<td class="wards">{{wards}}</td>\
+<td class="kills">{{kills}}</td>\
+<td class="deaths">{{deaths}}</td>\
+<td class="assists">{{assists}}</td>'
+
+var tableRowTemplate = Handlebars.compile(tableRowSource);

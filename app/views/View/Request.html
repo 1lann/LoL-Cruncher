@@ -3,6 +3,8 @@
 {{append . "pageScripts" "handlebars-v2.0.0.js"}}
 {{append . "pageScripts" "transition.min.js"}}
 {{append . "pageScripts" "dropdown.min.js"}}
+{{append . "pageScripts" "jquery.tablesorter.min.js"}}
+{{append . "pageScripts" "jquery.stickytableheaders.min.js"}}
 {{append . "pageScripts" "search.js"}}
 {{append . "pageScripts" "stats-templates.js"}}
 {{append . "pageScripts" "stats.js"}}
@@ -39,7 +41,495 @@
 				</div>
 			</div>
 		</div>
-		<div class="row">
+		<div class="row" id="table-area" style="display: none;">
+			<div class="col-xs-12">
+				<div class="stats-table-container">
+					<table class="table" id="stats-table">
+					<thead>
+						<tr>
+							<th></th> <!-- Image -->
+							<th>Champion</th>
+							<th>Played</th>
+							<th class="won">Won</th>
+							<th class="lost">Lost</th>
+							<th class="minions">Minions</th>
+							<th class="jungle">Jungle</th>
+							<th class="gold">Gold</th>
+							<th class="wards">Wards</th>
+							<th class="kills">Kills</th>
+							<th class="deaths">Deaths</th>
+							<th class="assists">Assists</th>
+						</tr>
+					</thead>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Nami.png"></td>
+						<td>Nami</td>
+						<td>10</td>
+						<td class="won">5</td>
+						<td class="lost">5</td>
+						<td class="minions">100</td>
+						<td class="jungle">10</td>
+						<td class="gold">56k</td>
+						<td class="wards">30</td>
+						<td class="kills">10</td>
+						<td class="deaths">8</td>
+						<td class="assists">30</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Shyvana.png"></td>
+						<td>Shyvana</td>
+						<td>100</td>
+						<td class="won">60</td>
+						<td class="lost">40</td>
+						<td class="minions">300</td>
+						<td class="jungle">40</td>
+						<td class="gold">564k</td>
+						<td class="wards">10</td>
+						<td class="kills">100</td>
+						<td class="deaths">50</td>
+						<td class="assists">10</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Nami.png"></td>
+						<td>Nami</td>
+						<td>10</td>
+						<td class="won">5</td>
+						<td class="lost">5</td>
+						<td class="minions">100</td>
+						<td class="jungle">10</td>
+						<td class="gold">56k</td>
+						<td class="wards">30</td>
+						<td class="kills">10</td>
+						<td class="deaths">8</td>
+						<td class="assists">30</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Shyvana.png"></td>
+						<td>Shyvana</td>
+						<td>100</td>
+						<td class="won">60</td>
+						<td class="lost">40</td>
+						<td class="minions">300</td>
+						<td class="jungle">40</td>
+						<td class="gold">564k</td>
+						<td class="wards">10</td>
+						<td class="kills">100</td>
+						<td class="deaths">50</td>
+						<td class="assists">10</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Nami.png"></td>
+						<td>Nami</td>
+						<td>10</td>
+						<td class="won">5</td>
+						<td class="lost">5</td>
+						<td class="minions">100</td>
+						<td class="jungle">10</td>
+						<td class="gold">56k</td>
+						<td class="wards">30</td>
+						<td class="kills">10</td>
+						<td class="deaths">8</td>
+						<td class="assists">30</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Shyvana.png"></td>
+						<td>Shyvana</td>
+						<td>100</td>
+						<td class="won">60</td>
+						<td class="lost">40</td>
+						<td class="minions">300</td>
+						<td class="jungle">40</td>
+						<td class="gold">564k</td>
+						<td class="wards">10</td>
+						<td class="kills">100</td>
+						<td class="deaths">50</td>
+						<td class="assists">10</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Nami.png"></td>
+						<td>Nami</td>
+						<td>10</td>
+						<td class="won">5</td>
+						<td class="lost">5</td>
+						<td class="minions">100</td>
+						<td class="jungle">10</td>
+						<td class="gold">56k</td>
+						<td class="wards">30</td>
+						<td class="kills">10</td>
+						<td class="deaths">8</td>
+						<td class="assists">30</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Shyvana.png"></td>
+						<td>Shyvana</td>
+						<td>100</td>
+						<td class="won">60</td>
+						<td class="lost">40</td>
+						<td class="minions">300</td>
+						<td class="jungle">40</td>
+						<td class="gold">564k</td>
+						<td class="wards">10</td>
+						<td class="kills">100</td>
+						<td class="deaths">50</td>
+						<td class="assists">10</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Nami.png"></td>
+						<td>Nami</td>
+						<td>10</td>
+						<td class="won">5</td>
+						<td class="lost">5</td>
+						<td class="minions">100</td>
+						<td class="jungle">10</td>
+						<td class="gold">56k</td>
+						<td class="wards">30</td>
+						<td class="kills">10</td>
+						<td class="deaths">8</td>
+						<td class="assists">30</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Shyvana.png"></td>
+						<td>Shyvana</td>
+						<td>100</td>
+						<td class="won">60</td>
+						<td class="lost">40</td>
+						<td class="minions">300</td>
+						<td class="jungle">40</td>
+						<td class="gold">564k</td>
+						<td class="wards">10</td>
+						<td class="kills">100</td>
+						<td class="deaths">50</td>
+						<td class="assists">10</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Nami.png"></td>
+						<td>Nami</td>
+						<td>10</td>
+						<td class="won">5</td>
+						<td class="lost">5</td>
+						<td class="minions">100</td>
+						<td class="jungle">10</td>
+						<td class="gold">56k</td>
+						<td class="wards">30</td>
+						<td class="kills">10</td>
+						<td class="deaths">8</td>
+						<td class="assists">30</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Shyvana.png"></td>
+						<td>Shyvana</td>
+						<td>100</td>
+						<td class="won">60</td>
+						<td class="lost">40</td>
+						<td class="minions">300</td>
+						<td class="jungle">40</td>
+						<td class="gold">564k</td>
+						<td class="wards">10</td>
+						<td class="kills">100</td>
+						<td class="deaths">50</td>
+						<td class="assists">10</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Nami.png"></td>
+						<td>Nami</td>
+						<td>10</td>
+						<td class="won">5</td>
+						<td class="lost">5</td>
+						<td class="minions">100</td>
+						<td class="jungle">10</td>
+						<td class="gold">56k</td>
+						<td class="wards">30</td>
+						<td class="kills">10</td>
+						<td class="deaths">8</td>
+						<td class="assists">30</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Shyvana.png"></td>
+						<td>Shyvana</td>
+						<td>100</td>
+						<td class="won">60</td>
+						<td class="lost">40</td>
+						<td class="minions">300</td>
+						<td class="jungle">40</td>
+						<td class="gold">564k</td>
+						<td class="wards">10</td>
+						<td class="kills">100</td>
+						<td class="deaths">50</td>
+						<td class="assists">10</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Nami.png"></td>
+						<td>Nami</td>
+						<td>10</td>
+						<td class="won">5</td>
+						<td class="lost">5</td>
+						<td class="minions">100</td>
+						<td class="jungle">10</td>
+						<td class="gold">56k</td>
+						<td class="wards">30</td>
+						<td class="kills">10</td>
+						<td class="deaths">8</td>
+						<td class="assists">30</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Shyvana.png"></td>
+						<td>Shyvana</td>
+						<td>100</td>
+						<td class="won">60</td>
+						<td class="lost">40</td>
+						<td class="minions">300</td>
+						<td class="jungle">40</td>
+						<td class="gold">564k</td>
+						<td class="wards">10</td>
+						<td class="kills">100</td>
+						<td class="deaths">50</td>
+						<td class="assists">10</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Nami.png"></td>
+						<td>Nami</td>
+						<td>10</td>
+						<td class="won">5</td>
+						<td class="lost">5</td>
+						<td class="minions">100</td>
+						<td class="jungle">10</td>
+						<td class="gold">56k</td>
+						<td class="wards">30</td>
+						<td class="kills">10</td>
+						<td class="deaths">8</td>
+						<td class="assists">30</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Shyvana.png"></td>
+						<td>Shyvana</td>
+						<td>100</td>
+						<td class="won">60</td>
+						<td class="lost">40</td>
+						<td class="minions">300</td>
+						<td class="jungle">40</td>
+						<td class="gold">564k</td>
+						<td class="wards">10</td>
+						<td class="kills">100</td>
+						<td class="deaths">50</td>
+						<td class="assists">10</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Nami.png"></td>
+						<td>Nami</td>
+						<td>10</td>
+						<td class="won">5</td>
+						<td class="lost">5</td>
+						<td class="minions">100</td>
+						<td class="jungle">10</td>
+						<td class="gold">56k</td>
+						<td class="wards">30</td>
+						<td class="kills">10</td>
+						<td class="deaths">8</td>
+						<td class="assists">30</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Shyvana.png"></td>
+						<td>Shyvana</td>
+						<td>100</td>
+						<td class="won">60</td>
+						<td class="lost">40</td>
+						<td class="minions">300</td>
+						<td class="jungle">40</td>
+						<td class="gold">564k</td>
+						<td class="wards">10</td>
+						<td class="kills">100</td>
+						<td class="deaths">50</td>
+						<td class="assists">10</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Nami.png"></td>
+						<td>Nami</td>
+						<td>10</td>
+						<td class="won">5</td>
+						<td class="lost">5</td>
+						<td class="minions">100</td>
+						<td class="jungle">10</td>
+						<td class="gold">56k</td>
+						<td class="wards">30</td>
+						<td class="kills">10</td>
+						<td class="deaths">8</td>
+						<td class="assists">30</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Shyvana.png"></td>
+						<td>Shyvana</td>
+						<td>100</td>
+						<td class="won">60</td>
+						<td class="lost">40</td>
+						<td class="minions">300</td>
+						<td class="jungle">40</td>
+						<td class="gold">564k</td>
+						<td class="wards">10</td>
+						<td class="kills">100</td>
+						<td class="deaths">50</td>
+						<td class="assists">10</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Nami.png"></td>
+						<td>Nami</td>
+						<td>10</td>
+						<td class="won">5</td>
+						<td class="lost">5</td>
+						<td class="minions">100</td>
+						<td class="jungle">10</td>
+						<td class="gold">56k</td>
+						<td class="wards">30</td>
+						<td class="kills">10</td>
+						<td class="deaths">8</td>
+						<td class="assists">30</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Shyvana.png"></td>
+						<td>Shyvana</td>
+						<td>100</td>
+						<td class="won">60</td>
+						<td class="lost">40</td>
+						<td class="minions">300</td>
+						<td class="jungle">40</td>
+						<td class="gold">564k</td>
+						<td class="wards">10</td>
+						<td class="kills">100</td>
+						<td class="deaths">50</td>
+						<td class="assists">10</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Nami.png"></td>
+						<td>Nami</td>
+						<td>10</td>
+						<td class="won">5</td>
+						<td class="lost">5</td>
+						<td class="minions">100</td>
+						<td class="jungle">10</td>
+						<td class="gold">56k</td>
+						<td class="wards">30</td>
+						<td class="kills">10</td>
+						<td class="deaths">8</td>
+						<td class="assists">30</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Shyvana.png"></td>
+						<td>Shyvana</td>
+						<td>100</td>
+						<td class="won">60</td>
+						<td class="lost">40</td>
+						<td class="minions">300</td>
+						<td class="jungle">40</td>
+						<td class="gold">564k</td>
+						<td class="wards">10</td>
+						<td class="kills">100</td>
+						<td class="deaths">50</td>
+						<td class="assists">10</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Nami.png"></td>
+						<td>Nami</td>
+						<td>10</td>
+						<td class="won">5</td>
+						<td class="lost">5</td>
+						<td class="minions">100</td>
+						<td class="jungle">10</td>
+						<td class="gold">56k</td>
+						<td class="wards">30</td>
+						<td class="kills">10</td>
+						<td class="deaths">8</td>
+						<td class="assists">30</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Shyvana.png"></td>
+						<td>Shyvana</td>
+						<td>100</td>
+						<td class="won">60</td>
+						<td class="lost">40</td>
+						<td class="minions">300</td>
+						<td class="jungle">40</td>
+						<td class="gold">564k</td>
+						<td class="wards">10</td>
+						<td class="kills">100</td>
+						<td class="deaths">50</td>
+						<td class="assists">10</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Nami.png"></td>
+						<td>Nami</td>
+						<td>10</td>
+						<td class="won">5</td>
+						<td class="lost">5</td>
+						<td class="minions">100</td>
+						<td class="jungle">10</td>
+						<td class="gold">56k</td>
+						<td class="wards">30</td>
+						<td class="kills">10</td>
+						<td class="deaths">8</td>
+						<td class="assists">30</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Shyvana.png"></td>
+						<td>Shyvana</td>
+						<td>100</td>
+						<td class="won">60</td>
+						<td class="lost">40</td>
+						<td class="minions">300</td>
+						<td class="jungle">40</td>
+						<td class="gold">564k</td>
+						<td class="wards">10</td>
+						<td class="kills">100</td>
+						<td class="deaths">50</td>
+						<td class="assists">10</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Nami.png"></td>
+						<td>Nami</td>
+						<td>10</td>
+						<td class="won">5</td>
+						<td class="lost">5</td>
+						<td class="minions">100</td>
+						<td class="jungle">10</td>
+						<td class="gold">56k</td>
+						<td class="wards">30</td>
+						<td class="kills">10</td>
+						<td class="deaths">8</td>
+						<td class="assists">30</td>
+					</tr>
+					<tr>
+						<td><img src="http://ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/Shyvana.png"></td>
+						<td>Shyvana</td>
+						<td>100</td>
+						<td class="won">60</td>
+						<td class="lost">40</td>
+						<td class="minions">300</td>
+						<td class="jungle">40</td>
+						<td class="gold">564k</td>
+						<td class="wards">10</td>
+						<td class="kills">100</td>
+						<td class="deaths">50</td>
+						<td class="assists">10</td>
+					</tr>
+					<tfoot>
+						<tr>
+							<td></td>
+							<td>Total</td>
+							<td>9000</td>
+							<td class="won">9000</td>
+							<td class="lost">9000</td>
+							<td class="minions">9000</td>
+							<td class="jungle">9000</td>
+							<td class="gold">9000</td>
+							<td class="wards">9000</td>
+							<td class="kills">9000</td>
+							<td class="deaths">9000</td>
+							<td class="assists">9000</td>
+						</tr>
+					</tfoot>
+					</table>
+				</div>
+			</div>
+		</div>
+		<div class="row" id="cards-area" style="display: none;">
 			<div class="left-column col-md-6">
 				<div class="general-card">
 					<!-- generalCardTemplate in stats-templates.js -->
