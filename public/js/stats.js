@@ -333,6 +333,10 @@ var generateChampionStats = function(championId) {
 			data: statsSource.MonstersKilled.toString(),
 		});
 		outputStats.push({
+			label: "Gold earned",
+			data: getGoldAmount(statsSource.GoldEarned),
+		});
+		outputStats.push({
 			label: "Wards placed",
 			data: statsSource.WardsPlaced.toString(),
 		});
@@ -377,6 +381,10 @@ var generateChampionStats = function(championId) {
 		outputStats.push({
 			label: "Jungle monsters killed per 10 minutes",
 			data: oneDecRound(statsSource.MonstersKilled/(timePlayed/600)),
+		});
+		outputStats.push({
+			label: "Gold earned per 10 minutes",
+			data: getGoldAmount(statsSource.GoldEarned/(timePlayed/600)),
 		});
 		outputStats.push({
 			label: "Wards placed per game",
