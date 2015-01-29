@@ -1,16 +1,22 @@
-<!DOCTYPE html>
-<html>
-	<head>
-		<title>Application error</title>
-	</head>
-	<body>
-		{{if eq .RunMode "dev"}}
-		{{template "errors/500-dev.html" .}}
-		{{else}}
-		<h1>Oops, an error occured</h1>
-		<p>
-			This exception has been logged.
-		</p>
-		{{end}}
-	</body>
-</html>
+{{set . "title" "LoL Cruncher"}}
+{{append . "pageStyles" "error.css"}}
+{{template "header.html" .}}
+
+<div class="error-container">
+<h1>Server Error</h1>
+</div>
+<div class="reason container">
+<div class="col-md-offset-2 col-md-8">
+	<p>
+		Something went wrong on our servers! Try again in a few
+		seconds. If the problem persists, contact me at
+		<a href="mailto:1lanncontact@gmail.com">1lanncontact@gmail.com</a> or
+		on
+		<a href="http://www.reddit.com/message/compose?to=1lann&amp;subject=omg+lolcruncher+isn%27t+working,+fix+plz.">
+		reddit at /u/1lann</a>.
+	</p>
+</div>
+</div>
+
+{{template "footer.html" .}}
+
