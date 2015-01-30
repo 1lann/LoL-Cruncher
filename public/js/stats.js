@@ -566,6 +566,7 @@ var generateTable = function() {
 
 	var stats = [];
 	var tableHeader = "";
+	var tableFooter = "";
 
 	if (selectedFilter == "All") {
 		tableHeader = tableAllHeader;
@@ -590,6 +591,23 @@ var generateTable = function() {
 
 			stats.push({stats: tableRowTemplate(renderArgs)});
 		}
+
+		var footerStats = selectedCollection.All;
+
+		var footerArgs = {
+			games: (footerStats.Wins + footerStats.Losses).toString(),
+			wins: footerStats.Wins.toString(),
+			losses: footerStats.Losses.toString(),
+			minions: footerStats.MinionsKilled.toString(),
+			jungle: footerStats.MonstersKilled.toString(),
+			gold: getGoldAmount(footerStats.GoldEarned),
+			wards: footerStats.WardsPlaced.toString(),
+			kills: footerStats.Kills.toString(),
+			deaths: footerStats.Deaths.toString(),
+			assists: footerStats.Assists.toString()
+		}
+
+		tableFooter = tableFooterTemplate(footerArgs);
 	} else if (selectedFilter == "Rates/average") {
 		tableHeader = tableRatesHeader;
 
@@ -620,11 +638,36 @@ var generateTable = function() {
 
 			stats.push({stats: tableRowTemplate(renderArgs)});
 		}
+
+		var footerStats = selectedCollection.All;
+
+		var timePlayed = footerStats.TimePlayed;
+		var numGames = (footerStats.Wins + footerStats.Losses);
+
+		var winrate = "0%";
+		if (numGames > 0) {
+			winrate = Math.round((footerStats.Wins/numGames) * 100) + "%";
+		}
+
+		var footerArgs = {
+			games: numGames.toString(),
+			wins: winrate,
+			minions: oneDecRound(footerStats.MinionsKilled/(timePlayed/600)),
+			jungle: oneDecRound(footerStats.MonstersKilled/(timePlayed/600)),
+			gold: getGoldAmount(footerStats.GoldEarned/(timePlayed/600)),
+			wards: oneDecRound(footerStats.WardsPlaced/numGames),
+			kills: oneDecRound(footerStats.Kills/numGames),
+			deaths: oneDecRound(footerStats.Deaths/numGames),
+			assists: oneDecRound(footerStats.Assists/numGames)
+		}
+
+		tableFooter = tableFooterTemplate(footerArgs);
 	}
 
 	var renderArgs = {
 		tableHeader: tableHeader,
-		championStats: stats
+		championStats: stats,
+		tableFooter: tableFooter
 	}
 
 	var tableElement = $(tableStatsTemplate(renderArgs));

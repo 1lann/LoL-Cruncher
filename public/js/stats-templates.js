@@ -164,11 +164,14 @@ var tableStatsSource = '\
 		{{{tableHeader}}}\
 	</tr>\
 </thead>\
-{{#each championStats}}\
-<tr>\
-{{{stats}}}\
-</tr>\
-{{/each}}\
+<tbody>\
+	{{#each championStats}}\
+	<tr>\
+	{{{stats}}}\
+	</tr>\
+	{{/each}}\
+</tbody>\
+{{{tableFooter}}}\
 </table>'
 
 
@@ -191,3 +194,26 @@ var tableRowSource = '\
 <td class="assists">{{assists}}</td>'
 
 var tableRowTemplate = Handlebars.compile(tableRowSource);
+
+tableFooterSource = '\
+<tfoot>\
+<tr>\
+<td></td>\
+<td>Total</td>\
+<td>{{games}}</td>\
+<td class="won">{{wins}}</td>\
+{{#if losses}}\
+<td class="lost">{{losses}}</td>\
+{{/if}}\
+<td class="minions">{{minions}}</td>\
+<td class="jungle">{{jungle}}</td>\
+<td class="gold">{{gold}}</td>\
+<td class="wards">{{wards}}</td>\
+<td class="kills">{{kills}}</td>\
+<td class="deaths">{{deaths}}</td>\
+<td class="assists">{{assists}}</td>\
+</tr>\
+</tfoot>\
+'
+
+var tableFooterTemplate = Handlebars.compile(tableFooterSource);
