@@ -131,7 +131,7 @@ var profileSource = '\
 var profileTemplate = Handlebars.compile(profileSource);
 
 var tableAllHeader = '\
-<th></th> <!-- Image -->\
+<th class="no-pointer"></th> <!-- Image -->\
 <th>Champion</th>\
 <th>Played</th>\
 <th class="won">Won</th>\
@@ -145,7 +145,7 @@ var tableAllHeader = '\
 <th class="assists">Assists</th>'
 
 var tableRatesHeader = '\
-<th></th> <!-- Image -->\
+<th class="no-pointer"></th> <!-- Image -->\
 <th>Champion</th>\
 <th>Played</th>\
 <th class="won">Winrate</th>\
