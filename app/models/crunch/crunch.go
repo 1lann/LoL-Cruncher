@@ -21,6 +21,7 @@ import (
 	"cruncher/app/models/dataFormat"
 	"time"
 	"math"
+	"sort"
 )
 
 func chomp(playerData *dataFormat.Player, game dataFormat.Game) {
@@ -349,9 +350,45 @@ func hasBeenProcessed(games []string, query string) bool {
 	return false
 }
 
+type byDuration []time.Duration
+
+func (a byDuration) Len() int           { return len(a) }
+func (a byDuration) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byDuration) Less(i, j int) bool { return a[i] < a[j] }
+
+
 func GetNextUpdate(games []dataFormat.Game) time.Time {
-	checkIndex := int(math.Min(float64(2), float64(len(games) - 1)))
-	intervalDuration := time.Since(games[checkIndex].Date)
+	// Get the average time diff for your last 5 games, multipled by 3
+	if len(games) <= 0 {
+		return time.Now().Add(time.Duration(24) * time.Hour)
+	}
+
+	sinceLastGame := time.Since(games[0].Date)
+	if sinceLastGame > time.Duration(48) * time.Hour {
+		return time.Now().Add(time.Duration(24) * time.Hour)
+	}
+
+	maxIndex := len(games) - 1
+
+	lastGame := time.Since(games[maxIndex].Date)
+	sortedDiffs := []time.Duration{}
+
+	for i := maxIndex - 1; i >= 0; i-- {
+		sortedDiffs = append(sortedDiffs, lastGame - time.Since(games[i].Date))
+		lastGame = time.Since(games[i].Date)
+	}
+
+	sort.Sort(byDuration(sortedDiffs))
+
+	maxCheck := int(math.Min(float64(4), float64(maxIndex)))
+
+	total := time.Duration(0)
+	for i := 0; i < maxCheck; i++ {
+		total = total + sortedDiffs[i]
+	}
+
+	averageDiff := (total / time.Duration(maxCheck))
+	intervalDuration := averageDiff * time.Duration(3)
 
 	if intervalDuration.Hours() > 24 {
 		intervalDuration = time.Duration(24) * time.Hour

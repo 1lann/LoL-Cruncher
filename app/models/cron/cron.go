@@ -28,44 +28,52 @@ import (
 
 var monitorRunning bool = false
 var longMonitorRunning bool = false
-
+var updateRate = 2000 // 2000 by default, also replicated at the bottom of
+					  // the file in Start()
 
 var ProcessingRunning bool = false
 
 func processPlayers(players []dataFormat.BasicPlayer) {
 	ProcessingRunning = true
+	displayErrors := true
 
-	for _, player := range players {
-		time.Sleep(time.Duration(2) * time.Second)
+	for _, itPlayer := range players {
+		time.Sleep(time.Duration(updateRate) * time.Millisecond)
+		go func(player dataFormat.BasicPlayer) {
+			revel.INFO.Printf("Processing player: %v", player.Id)
 
-		revel.INFO.Printf("Processing player: %v", player.Id)
+			playerGames, err := riotapi.GetRecentGames(player.Id, player.Region)
+			if err != nil {
+				if displayErrors {
+					revel.ERROR.Println("Failed to load recent games!")
+					revel.ERROR.Println(err)
+					displayErrors = false
+				}
+			}
 
-		playerGames, err := riotapi.GetRecentGames(player.Id, player.Region)
-		if err != nil {
-			revel.ERROR.Println("Failed to load recent games!")
-			revel.ERROR.Println(err)
-			continue
-		}
+			playerData, resp := database.GetSummonerData(player.Id,
+				player.Region)
 
-		playerData, resp := database.GetSummonerData(player.Id,
-			player.Region)
+			if resp != database.Yes {
+				if displayErrors {
+					revel.ERROR.Println("Non-ok response from " +
+						"database while processing!")
+					displayErrors = false
+				}
+			}
 
-		if resp != database.Yes {
-			revel.ERROR.Println("Non-ok response from " +
-				"database while processing!")
-			continue
-		}
+			newPlayer := crunch.Crunch(playerData, playerGames)
+			newPlayer.NextUpdate = crunch.GetNextUpdate(playerGames)
 
-		newPlayer := crunch.Crunch(playerData, playerGames)
-		newPlayer.NextUpdate = crunch.GetNextUpdate(playerGames)
+			revel.INFO.Printf("Next update time in hours: %v",
+				time.Since(newPlayer.NextUpdate).Hours())
 
-		revel.INFO.Printf("Next update time in hours: %v",
-			time.Since(newPlayer.NextUpdate).Hours())
-
-		resp = database.StoreSummonerData(newPlayer)
-		if resp != database.Yes {
-			revel.ERROR.Println("Non-ok response for storing player data")
-		}
+			resp = database.StoreSummonerData(newPlayer)
+			if (resp != database.Yes) && displayErrors {
+				revel.ERROR.Println("Non-ok response for storing player data")
+				displayErrors = false
+			}
+		}(itPlayer)
 	}
 
 	ProcessingRunning = false
@@ -73,28 +81,32 @@ func processPlayers(players []dataFormat.BasicPlayer) {
 
 func processTiers(players []dataFormat.BasicPlayer) {
 	ProcessingRunning = true
+	displayErrors := true
 
-	for _, player := range players {
-		time.Sleep(time.Duration(2) * time.Second)
+	for _, itPlayer := range players {
+		time.Sleep(time.Duration(updateRate) * time.Millisecond)
+		go func(player dataFormat.BasicPlayer) {
+			revel.INFO.Printf("Processing tier for: %v", player.Id)
 
-		revel.INFO.Printf("Processing tier for: %v", player.Id)
+			tier, err := riotapi.GetTier(player.Id, player.Region)
+			if err != nil {
+				if displayErrors {
+					revel.ERROR.Println("Failed to load player tier!")
+					revel.ERROR.Println(err)
+					displayErrors = false
+				}
+			}
 
-		tier, err := riotapi.GetTier(player.Id, player.Region)
-		if err != nil {
-			revel.ERROR.Println("Failed to load player tier!")
-			revel.ERROR.Println(err)
-			continue
-		}
+			nextLongUpdate := time.Now().Add(time.Duration(72) * time.Hour)
 
-		nextLongUpdate := time.Now().Add(time.Duration(72) * time.Hour)
-
-		resp := database.StoreTier(player.Id, player.Region, tier,
-			nextLongUpdate)
-		if resp != database.Yes {
-			revel.ERROR.Println("Non-ok response from " +
-				"database while storing tier!")
-			continue
-		}
+			resp := database.StoreTier(player.Id, player.Region, tier,
+				nextLongUpdate)
+			if (resp != database.Yes) && displayErrors {
+				revel.ERROR.Println("Non-ok response from " +
+					"database while storing tier!")
+				displayErrors = false
+			}
+		}(itPlayer)
 	}
 
 	ProcessingRunning = false
@@ -111,7 +123,7 @@ func RecordMonitor() {
 
 		if resp != database.Yes {
 			revel.ERROR.Println("RecordMonitor non-ok response from database!")
-			time.Sleep(time.Duration(60) * time.Minute)
+			time.Sleep(time.Duration(10) * time.Minute)
 			continue
 		}
 
@@ -137,7 +149,7 @@ func LongTermMonitor() {
 		if resp != database.Yes {
 			revel.ERROR.Println("LongTermMonitor non-ok " +
 				"response from database!")
-			time.Sleep(time.Hour)
+			time.Sleep(time.Duration(10) * time.Minute)
 			continue
 		}
 
@@ -152,6 +164,8 @@ func LongTermMonitor() {
 }
 
 func Start() {
+	updateRate = revel.Config.IntDefault("updaterate", 2000)
+	revel.INFO.Printf("Update rate set to: %v ms", updateRate)
 	go RecordMonitor()
 	go LongTermMonitor()
 	revel.INFO.Println("Now running monitors")

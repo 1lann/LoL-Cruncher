@@ -12,6 +12,10 @@ For example you would add this line somewhere near the top of the file (Obviousl
 
 `riotapikey = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxx`
 
+You'll also need to specify the MongoDB IP. Ex:
+
+`database.ip = 127.0.0.1`
+
 Then, run `revel run cruncher` and navigate your browser to http://127.0.0.1:9000
 
 ## The Plan/Todo List
@@ -20,8 +24,8 @@ Then, run `revel run cruncher` and navigate your browser to http://127.0.0.1:900
 - ~~Core functionality without cron jobs~~
 - ~~Design pages~~
 - ~~Add cron jobs~~
-- Apply for production key
-- ???
+- ~~Apply for production key~~
+- ~~???~~
 - Profit
 
 

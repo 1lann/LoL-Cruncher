@@ -247,10 +247,9 @@ func GetUpdatePlayers() ([]dataFormat.BasicPlayer, int) {
 	for it.Next(&player) {
 		if player.NextUpdate.IsZero() {
 			revel.ERROR.Println(`Zero time for next update from GetUpdates.
-				 This error is not self resolving and should be manually fixed.
-				 However in most cases, the error will be visible to the end
-				 user`)
+This is probably due to corrupt data, updating player...`)
 			revel.ERROR.Println(player)
+			results = append(results, player)
 		} else {
 			if player.NextUpdate.Before(time.Now()) {
 				results = append(results, player)
@@ -297,10 +296,9 @@ func GetLongUpdatePlayers() ([]dataFormat.BasicPlayer, int) {
 	for it.Next(&player) {
 		if player.NextLongUpdate.IsZero() {
 			revel.ERROR.Println(`Zero time for next update from GetLongUpdates.
-				This error is not self resolving and should be manually fixed.
-				However in most cases, the error will be visible to the end
-				user`)
+This is probably due to corrupt data, updating player...`)
 			revel.ERROR.Println(player)
+			results = append(results, player)
 		} else {
 			if player.NextLongUpdate.Before(time.Now()) {
 				results = append(results, player)
