@@ -61,8 +61,8 @@ func (c View) Request(region, name string) revel.Result {
 		}
 	}
 
-	if resolvedName != name {
-		return c.Redirect("/" + region + "/" + resolvedName)
+	if strings.Trim(resolvedName, " ") != strings.Trim(name, " ") {
+		return c.Redirect("/" + region + "/" + strings.Trim(resolvedName, " "))
 	}
 
 	c.RenderArgs["new"] = new
