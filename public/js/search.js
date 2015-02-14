@@ -134,9 +134,9 @@ var floodResults = function(query, start) {
 	var results = [];
 
 	while (true) {
-		var searchElement = playersDatabase[start]
+		var searchElement = playersDatabase[start];
+		searchElement = searchElement.toLowerCase().replace(/ /g, "");
 		searchElement = searchElement.substring(0, query.length);
-		searchElement = searchElement.toLowerCase()
 		if (start < playersDatabase.length && (searchElement == query)) {
 			results.push(playersDatabase[start]);
 			start++;
@@ -152,8 +152,8 @@ var floodResults = function(query, start) {
 var reverseAndFlood = function(start, query) {
 	for (var reverseStart = start; reverseStart >= 0; reverseStart--) {
 		var searchElement = playersDatabase[reverseStart];
+		searchElement = searchElement.toLowerCase().replace(/ /g, "");
 		searchElement = searchElement.substring(0, query.length);
-		searchElement = searchElement.toLowerCase();
 
 		if (searchElement != query) {
 			reverseStart++;
@@ -175,11 +175,13 @@ var binarySearch = function(query, start, end) {
 
 	var center = Math.ceil((start + end) / 2);
 	var test = playersDatabase[center];
-	if (test == center) {
+	var normalized = test.toLowerCase().replace(/ /g, "");
+	var substr = normalized.substring(0, query.length);
+	if (normalized == center) {
 		return floodResults(query, center)
-	} else if (test.substring(0, query.length).toLowerCase() == query) {
+	} else if (substr == query) {
 		return reverseAndFlood(center, query)
-	} else if (test.substring(0, query.length).toLowerCase() > query) {
+	} else if (substr > query) {
 		return binarySearch(query, start, center - 1);
 	} else {
 		return binarySearch(query, center + 1, end);
@@ -187,7 +189,7 @@ var binarySearch = function(query, start, end) {
 }
 
 var search = function(query) {
-	var lowerQuery = query.toLowerCase();
+	var lowerQuery = query.toLowerCase().replace(/ /g, "");
 	var results = binarySearch(lowerQuery, 0, playersDatabase.length - 1);
 	return results;
 }
