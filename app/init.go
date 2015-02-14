@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/revel/revel"
+	"github.com/revel/revel/modules/static/app/controllers"
 	"cruncher/app/models/riotapi"
 	"cruncher/app/models/cron"
 	"cruncher/app/models/database"
@@ -29,6 +30,8 @@ func init() {
 	revel.OnAppStart(riotapi.LoadAPIKey)
 	revel.OnAppStart(database.Connect)
 	revel.OnAppStart(cron.Start)
+
+	revel.FilterController(controllers.Static{}).Add(staticCache)
 }
 
 // TODO turn this into revel.HeaderFilter
@@ -41,4 +44,9 @@ var HeaderFilter = func(c *revel.Controller, fc []revel.Filter) {
 	c.Response.Out.Header().Add("X-Content-Type-Options", "nosniff")
 
 	fc[0](c, fc[1:]) // Execute the next filter stage.
+}
+
+func staticCache(c *revel.Controller, fc []revel.Filter) {
+	fc[0](c, fc[1:])
+	c.Response.Out.Header().Set("Cache-Control", "max-age=86400")
 }
