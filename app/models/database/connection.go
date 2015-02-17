@@ -21,6 +21,7 @@ import (
 	"github.com/revel/revel"
 	"gopkg.in/mgo.v2"
 	"time"
+	"strings"
 )
 
 var IsConnected bool
@@ -31,7 +32,8 @@ var playerIds *mgo.Collection
 
 func isDisconnected(err string) bool {
 	if err == "EOF" || err == "no reachable servers" ||
-		err == "Closed explicitly" {
+			err == "Closed explicitly" ||
+			strings.Contains(err, "connection reset by peer") {
 		return true
 	} else {
 		return false
