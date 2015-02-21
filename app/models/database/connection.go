@@ -33,7 +33,8 @@ var playerIds *mgo.Collection
 func isDisconnected(err string) bool {
 	if err == "EOF" || err == "no reachable servers" ||
 			err == "Closed explicitly" ||
-			strings.Contains(err, "connection reset by peer") {
+			strings.Contains(err, "connection reset by peer") ||
+			strings.Contains(err, "i/o timeout") {
 		return true
 	} else {
 		return false
