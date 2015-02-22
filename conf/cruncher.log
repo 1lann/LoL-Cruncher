@@ -1,0 +1,1 @@
+WARN  2015/02/22 20:08:28 connection.go:67: No database.password in conf/app.conf, assuming development mode with no login.

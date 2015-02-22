@@ -1,4 +1,3 @@
-
 // LoL Cruncher - A Historical League of Legends Statistics Tracker
 // Copyright (C) 2015  Jason Chu (1lann) 1lanncontact@gmail.com
 
@@ -18,10 +17,12 @@
 package controllers
 
 import (
-	"github.com/revel/revel"
-	"cruncher/app/models/database"
 	"cruncher/app/models/dataFormat"
+	"cruncher/app/models/database"
 	"encoding/json"
+	"github.com/revel/revel"
+	"net/url"
+	"strings"
 	"time"
 )
 
@@ -30,15 +31,35 @@ type Data struct {
 }
 
 var lastCacheUpdate time.Time
+var cacheSitemap string
 var cacheResponse string
 
 type playerUpdate struct {
-	Time int64
+	Time    int64
 	Players []dataFormat.BrowserPlayer
 }
 
+func generateSitemap(players []dataFormat.BrowserPlayer) {
+	header := `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url>`
+	footer := `</url>
+</urlset>`
+
+	output := header
+
+	for _, v := range players {
+		region := strings.Replace(url.QueryEscape(v.Region), "+", "%20", -1)
+		name := strings.Replace(url.QueryEscape(v.Name), "+", "%20", -1)
+		output = output + "<loc>https://lolcruncher.tk/" + region + "/" +
+			name + "/</loc>"
+	}
+
+	cacheSitemap = output + footer
+}
+
 func getDatabaseUpdates() string {
-	if (database.LastPlayerUpdate.After(lastCacheUpdate)) {
+	if database.LastPlayerUpdate.After(lastCacheUpdate) {
 		results, resp := database.GetBrowserPlayers()
 		if resp != database.Yes {
 			revel.ERROR.Println("getDatabaseUpdates error!")
@@ -46,7 +67,7 @@ func getDatabaseUpdates() string {
 		}
 
 		fullResult := playerUpdate{
-			Time: database.LastPlayerUpdate.Unix() + 1,
+			Time:    database.LastPlayerUpdate.Unix() + 1,
 			Players: results,
 		}
 
@@ -59,6 +80,7 @@ func getDatabaseUpdates() string {
 
 		lastCacheUpdate = database.LastPlayerUpdate
 		cacheResponse = string(result)
+		generateSitemap(results)
 		return string(result)
 	} else {
 		return cacheResponse
@@ -66,10 +88,19 @@ func getDatabaseUpdates() string {
 }
 
 func (c Data) CheckDatabaseUpdates(lastupdate int) revel.Result {
-	if (database.LastPlayerUpdate.After(time.Unix(int64(lastupdate), 0))) {
+	if database.LastPlayerUpdate.After(time.Unix(int64(lastupdate), 0)) {
 		databaseUpdates := getDatabaseUpdates()
 		return c.RenderText(databaseUpdates)
 	} else {
 		return c.RenderText("false")
+	}
+}
+
+func (c Data) Sitemap() revel.Result {
+	if len(cacheSitemap) <= 0 {
+		getDatabaseUpdates()
+		return c.RenderText(cacheSitemap)
+	} else {
+		return c.RenderText(cacheSitemap)
 	}
 }

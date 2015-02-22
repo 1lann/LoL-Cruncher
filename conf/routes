@@ -8,6 +8,9 @@ GET     /                                       View.Index
 GET		/about									View.About
 POST	/players								Data.CheckDatabaseUpdates
 
+GET		/robots.txt								View.Robots
+GET		/sitemap.xml							Data.Sitemap
+
 # Ignore favicon requests
 GET     /favicon.ico                            404
 

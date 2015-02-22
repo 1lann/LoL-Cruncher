@@ -1,4 +1,3 @@
-
 // LoL Cruncher - A Historical League of Legends Statistics Tracker
 // Copyright (C) 2015  Jason Chu (1lann) 1lanncontact@gmail.com
 
@@ -18,8 +17,8 @@
 package controllers
 
 import (
-	"github.com/revel/revel"
 	"cruncher/app/models/query"
+	"github.com/revel/revel"
 	"strings"
 )
 
@@ -35,11 +34,15 @@ func (c View) About() revel.Result {
 	return c.Render()
 }
 
+func (c View) Robots() revel.Result {
+	return c.RenderText("Sitemap: https://lolcruncher.tk/sitemap.xml")
+}
+
 func (c View) Request(region, name string) revel.Result {
 	if !(region == "na" || region == "euw" || region == "eune" ||
-			region == "lan" || region == "las" || region == "oce" ||
-			region == "br" || region == "ru" || region == "kr" ||
-			region == "tr") {
+		region == "lan" || region == "las" || region == "oce" ||
+		region == "br" || region == "ru" || region == "kr" ||
+		region == "tr") {
 		c.Flash.Error("Sorry, that region isn't supported!")
 		return c.Redirect(View.Index)
 	}
@@ -48,11 +51,11 @@ func (c View) Request(region, name string) revel.Result {
 
 	resolvedName, player, new, err := query.GetStats(name, region)
 	if err != nil {
-		if (err.Error() == "database error") {
+		if err.Error() == "database error" {
 			return c.RenderTemplate("errors/database.html")
-		} else if (err.Error() == "database down") {
+		} else if err.Error() == "database down" {
 			return c.RenderTemplate("errors/down.html")
-		} else if (err.Error() == "Not Found") {
+		} else if err.Error() == "Not Found" {
 			c.Flash.Error("Sorry, that summoner could not be found!")
 			return c.Redirect(View.Index)
 		} else {
