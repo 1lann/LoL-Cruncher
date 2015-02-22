@@ -41,18 +41,16 @@ type playerUpdate struct {
 
 func generateSitemap(players []dataFormat.BrowserPlayer) {
 	header := `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-<url>`
-	footer := `</url>
-</urlset>`
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`
+	footer := `</urlset>`
 
 	output := header
 
 	for _, v := range players {
 		region := strings.Replace(url.QueryEscape(v.Region), "+", "%20", -1)
 		name := strings.Replace(url.QueryEscape(v.Name), "+", "%20", -1)
-		output = output + "<loc>https://lolcruncher.tk/" + region + "/" +
-			name + "/</loc>"
+		output = output + "<url><loc>https://lolcruncher.tk/" +
+			region + "/" + name + "/</loc></url>"
 	}
 
 	cacheSitemap = output + footer
