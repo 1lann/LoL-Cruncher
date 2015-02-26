@@ -1,4 +1,3 @@
-
 // LoL Cruncher - A Historical League of Legends Statistics Tracker
 // Copyright (C) 2015  Jason Chu (1lann) 1lanncontact@gmail.com
 
@@ -22,8 +21,8 @@ import (
 	"github.com/revel/revel"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"time"
 	"strings"
+	"time"
 )
 
 const (
@@ -34,9 +33,9 @@ const (
 )
 
 type playerId struct {
-	Id string
-	Region string
-	Name string
+	Id         string
+	Region     string
+	Name       string
 	Normalized string
 }
 
@@ -48,6 +47,8 @@ func GetSummonerID(name string, region string) (string, string, int) {
 		go Connect()
 		return "", "", Down
 	}
+
+	defer databaseRecover()
 
 	normalizedName := strings.Replace(strings.ToLower(name), " ", "", -1)
 
@@ -77,6 +78,8 @@ func StoreSummonerID(name string, id string, region string) int {
 		return Down
 	}
 
+	defer databaseRecover()
+
 	// Check for identical id, if so, delete the old one
 	query := bson.M{"id": id, "region": region}
 	var result playerId
@@ -104,9 +107,9 @@ func StoreSummonerID(name string, id string, region string) int {
 
 	// Continue here if everything is clean
 	newPlayer := playerId{
-		Id: id,
-		Region: region,
-		Name: name,
+		Id:         id,
+		Region:     region,
+		Name:       name,
 		Normalized: normalizedName,
 	}
 	err = playerIds.Insert(newPlayer)
@@ -129,6 +132,8 @@ func GetSummonerData(id string, region string) (dataFormat.Player, int) {
 		go Connect()
 		return dataFormat.Player{}, Down
 	}
+
+	defer databaseRecover()
 
 	query := bson.M{"id": id, "region": region}
 	var result dataFormat.Player
@@ -156,6 +161,8 @@ func GetBrowserPlayers() ([]dataFormat.BrowserPlayer, int) {
 		return []dataFormat.BrowserPlayer{}, Down
 	}
 
+	defer databaseRecover()
+
 	var result []dataFormat.BrowserPlayer
 	query := bson.M{"name": 1, "region": 1}
 	err := playerIds.Find(nil).Sort("normalized").Select(query).All(&result)
@@ -181,6 +188,8 @@ func StoreSummonerData(player dataFormat.Player) int {
 		go Connect()
 		return Down
 	}
+
+	defer databaseRecover()
 
 	query := bson.M{"id": player.Id, "region": player.Region}
 	err := players.Update(query, bson.M{"$set": player})
@@ -208,15 +217,17 @@ func StoreSummonerData(player dataFormat.Player) int {
 }
 
 func StoreTier(id string, region string, tier string,
-		nextLongUpdate time.Time) int {
+	nextLongUpdate time.Time) int {
 	if !IsConnected {
 		go Connect()
 		return Down
 	}
 
+	defer databaseRecover()
+
 	query := bson.M{"id": id, "region": region}
 	err := players.Update(query, bson.M{"$set": bson.M{
-		"tier": tier,
+		"tier":           tier,
 		"nextlongupdate": nextLongUpdate,
 	}})
 	if err != nil {
@@ -231,13 +242,15 @@ func GetUpdatePlayers() ([]dataFormat.BasicPlayer, int) {
 		return []dataFormat.BasicPlayer{}, Down
 	}
 
+	defer databaseRecover()
+
 	var results []dataFormat.BasicPlayer
 
 	query := bson.M{
-		"region": 1,
-		"id": 1,
-		"recordstart": 1,
-		"nextupdate": 1,
+		"region":         1,
+		"id":             1,
+		"recordstart":    1,
+		"nextupdate":     1,
 		"nextlongupdate": 1,
 	}
 
@@ -280,13 +293,15 @@ func GetLongUpdatePlayers() ([]dataFormat.BasicPlayer, int) {
 		return []dataFormat.BasicPlayer{}, Down
 	}
 
+	defer databaseRecover()
+
 	var results []dataFormat.BasicPlayer
 
 	query := bson.M{
-		"region": 1,
-		"id": 1,
-		"recordstart": 1,
-		"nextupdate": 1,
+		"region":         1,
+		"id":             1,
+		"recordstart":    1,
+		"nextupdate":     1,
 		"nextlongupdate": 1,
 	}
 

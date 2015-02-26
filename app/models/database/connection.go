@@ -1,4 +1,3 @@
-
 // LoL Cruncher - A Historical League of Legends Statistics Tracker
 // Copyright (C) 2015  Jason Chu (1lann) 1lanncontact@gmail.com
 
@@ -20,8 +19,8 @@ package database
 import (
 	"github.com/revel/revel"
 	"gopkg.in/mgo.v2"
-	"time"
 	"strings"
+	"time"
 )
 
 var IsConnected bool
@@ -32,17 +31,26 @@ var playerIds *mgo.Collection
 
 func isDisconnected(err string) bool {
 	if err == "EOF" || err == "no reachable servers" ||
-			err == "Closed explicitly" ||
-			strings.Contains(err, "connection reset by peer") ||
-			strings.Contains(err, "i/o timeout") {
+		err == "Closed explicitly" ||
+		strings.Contains(err, "connection reset by peer") ||
+		strings.Contains(err, "i/o timeout") {
 		return true
 	} else {
 		return false
 	}
 }
 
+func databaseRecover() {
+	if r := recover(); r != nil {
+		revel.ERROR.Println("Recovered from database driver panic")
+		revel.ERROR.Println(r)
+	}
+}
+
 func Connect() {
 	if !isConnecting {
+		defer databaseRecover()
+
 		IsConnected = false
 
 		if activeSession != nil {
@@ -77,8 +85,8 @@ func Connect() {
 
 		session.SetMode(mgo.Monotonic, true)
 		session.SetSafe(&mgo.Safe{})
-		session.SetSyncTimeout(time.Second*3)
-		session.SetSocketTimeout(time.Second*3)
+		session.SetSyncTimeout(time.Second * 3)
+		session.SetSocketTimeout(time.Second * 3)
 
 		activeSession = session
 
