@@ -1,4 +1,3 @@
-
 // LoL Cruncher - A Historical League of Legends Statistics Tracker
 // Copyright (C) 2015  Jason Chu (1lann) 1lanncontact@gmail.com
 
@@ -18,18 +17,18 @@
 package cron
 
 import (
-	"time"
-	"cruncher/app/models/database"
-	"cruncher/app/models/riotapi"
 	"cruncher/app/models/crunch"
 	"cruncher/app/models/dataFormat"
+	"cruncher/app/models/database"
+	"cruncher/app/models/riotapi"
 	"github.com/revel/revel"
+	"time"
 )
 
 var monitorRunning bool = false
 var longMonitorRunning bool = false
 var updateRate = 2000 // 2000 by default, also replicated at the bottom of
-					  // the file in Start()
+// the file in Start()
 
 var ProcessingRunning bool = false
 
@@ -49,6 +48,7 @@ func processPlayers(players []dataFormat.BasicPlayer) {
 					revel.ERROR.Println(err)
 					displayErrors = false
 				}
+				return
 			}
 
 			playerData, resp := database.GetSummonerData(player.Id,
@@ -60,6 +60,7 @@ func processPlayers(players []dataFormat.BasicPlayer) {
 						"database while processing!")
 					displayErrors = false
 				}
+				return
 			}
 
 			newPlayer := crunch.Crunch(playerData, playerGames)
@@ -95,6 +96,7 @@ func processTiers(players []dataFormat.BasicPlayer) {
 					revel.ERROR.Println(err)
 					displayErrors = false
 				}
+				return
 			}
 
 			nextLongUpdate := time.Now().Add(time.Duration(72) * time.Hour)
