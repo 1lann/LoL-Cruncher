@@ -1,13 +1,21 @@
 package app
 
 import (
+	"cruncher/app/models/cron"
+	"cruncher/app/models/database"
+	"cruncher/app/models/riotapi"
 	"github.com/revel/revel"
 	"github.com/revel/revel/modules/static/app/controllers"
 	"time"
-	"cruncher/app/models/riotapi"
-	"cruncher/app/models/cron"
-	"cruncher/app/models/database"
 )
+
+func startDatabase() {
+	go func() {
+		time.Sleep(time.Duration(10) * time.Second)
+		revel.OnAppStart(database.Connect)
+		revel.OnAppStart(cron.Start)
+	}()
+}
 
 func init() {
 	// Filters is the default set of global filters.
@@ -29,10 +37,7 @@ func init() {
 	// register startup functions with OnAppStart
 	// ( order dependent )
 	revel.OnAppStart(riotapi.LoadAPIKey)
-
-	time.Sleep(time.Duration(20) * time.Second)
-	revel.OnAppStart(database.Connect)
-	revel.OnAppStart(cron.Start)
+	revel.OnAppStart(startDatabase)
 
 	revel.FilterController(controllers.Static{}).Add(staticCache)
 }

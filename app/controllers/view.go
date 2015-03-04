@@ -72,5 +72,6 @@ func (c View) Request(region, name string) revel.Result {
 	c.RenderArgs["player"] = player
 	c.RenderArgs["name"] = resolvedName
 	c.RenderArgs["titleName"] = resolvedName + " - LoL Cruncher"
+	c.RenderArgs["description"] = "View " + resolvedName + "'s statistics for all queues (since " + player.RecordStart + ")"
 	return c.Render()
 }
