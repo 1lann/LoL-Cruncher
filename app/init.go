@@ -12,8 +12,8 @@ import (
 func startDatabase() {
 	go func() {
 		time.Sleep(time.Duration(10) * time.Second)
-		revel.OnAppStart(database.Connect)
-		revel.OnAppStart(cron.Start)
+		database.Connect()
+		cron.Start()
 	}()
 }
 
