@@ -1,4 +1,3 @@
-
 // LoL Cruncher - A Historical League of Legends Statistics Tracker
 // Copyright (C) 2015  Jason Chu (1lann) 1lanncontact@gmail.com
 
@@ -19,50 +18,50 @@ package riotapi
 
 import (
 	"cruncher/app/models/dataFormat"
-	"github.com/revel/revel"
-	"net/http"
-	"io/ioutil"
-	"time"
 	"encoding/json"
 	"errors"
+	"github.com/revel/revel"
+	"io/ioutil"
+	"net/http"
 	"strconv"
+	"time"
 )
 
 var apiKey string
 
 type Player struct {
 	ChampionId int
-	TeamId int
+	TeamId     int
 }
 
 type Stats struct {
-	GoldEarned int
-	WardPlaced int
-	WardKilled int
-	Win bool
-	DoubleKills int
-	TripleKills int
-	QuadraKills int
-	PentaKills int
-	UnrealKills int
+	GoldEarned           int
+	WardPlaced           int
+	WardKilled           int
+	Win                  bool
+	DoubleKills          int
+	TripleKills          int
+	QuadraKills          int
+	PentaKills           int
+	UnrealKills          int
 	NeutralMinionsKilled int
-	TimePlayed int
-	ChampionsKilled int
-	Assists int
-	NumDeaths int
-	MinionsKilled int
+	TimePlayed           int
+	ChampionsKilled      int
+	Assists              int
+	NumDeaths            int
+	MinionsKilled        int
 }
 
 type Game struct {
 	FellowPlayers []Player
-	GameType string
-	GameId int
-	TeamId int
-	GameMode string
-	ChampionId int
-	CreateDate int64
-	SubType string
-	Stats Stats
+	GameType      string
+	GameId        int
+	TeamId        int
+	GameMode      string
+	ChampionId    int
+	CreateDate    int64
+	SubType       string
+	Stats         Stats
 }
 
 type gameHistory struct {
@@ -73,32 +72,32 @@ func convertGame(game Game) dataFormat.Game {
 	isMatchedGame := (game.GameType == "MATCHED_GAME")
 	isClassicGame := (game.GameMode == "CLASSIC" || game.GameMode == "ARAM")
 
-	createTime := time.Unix(int64(game.CreateDate / 1000), 0)
+	createTime := time.Unix(int64(game.CreateDate/1000), 0)
 	createYear := strconv.Itoa(createTime.Year())
 	createMonth := strconv.Itoa(int(createTime.Month()))
 
-	return dataFormat.Game {
-		DidWin: game.Stats.Win,
-		IsOnBlue: (game.TeamId == 100),
-		IsNormals: (isMatchedGame && isClassicGame),
-		ChampionId: strconv.Itoa(game.ChampionId),
-		Duration: uint32(game.Stats.TimePlayed),
-		Id: strconv.Itoa(game.GameId),
-		Type: game.SubType,
-		Kills: uint32(game.Stats.ChampionsKilled),
-		Assists: uint32(game.Stats.Assists),
-		Deaths: uint32(game.Stats.NumDeaths),
-		DoubleKills: uint32(game.Stats.DoubleKills),
-		TripleKills: uint32(game.Stats.TripleKills),
-		QuadraKills: uint32(game.Stats.QuadraKills),
-		PentaKills: uint32(game.Stats.PentaKills),
-		GoldEarned: uint32(game.Stats.GoldEarned),
-		MinionsKilled: uint32(game.Stats.MinionsKilled),
+	return dataFormat.Game{
+		DidWin:         game.Stats.Win,
+		IsOnBlue:       (game.TeamId == 100),
+		IsNormals:      (isMatchedGame && isClassicGame),
+		ChampionId:     strconv.Itoa(game.ChampionId),
+		Duration:       uint32(game.Stats.TimePlayed),
+		Id:             strconv.Itoa(game.GameId),
+		Type:           game.SubType,
+		Kills:          uint32(game.Stats.ChampionsKilled),
+		Assists:        uint32(game.Stats.Assists),
+		Deaths:         uint32(game.Stats.NumDeaths),
+		DoubleKills:    uint32(game.Stats.DoubleKills),
+		TripleKills:    uint32(game.Stats.TripleKills),
+		QuadraKills:    uint32(game.Stats.QuadraKills),
+		PentaKills:     uint32(game.Stats.PentaKills),
+		GoldEarned:     uint32(game.Stats.GoldEarned),
+		MinionsKilled:  uint32(game.Stats.MinionsKilled),
 		MonstersKilled: uint32(game.Stats.NeutralMinionsKilled),
-		WardsPlaced: uint32(game.Stats.WardPlaced),
-		WardsKilled: uint32(game.Stats.WardKilled),
-		YearMonth: createYear + " " + createMonth,
-		Date: createTime,
+		WardsPlaced:    uint32(game.Stats.WardPlaced),
+		WardsKilled:    uint32(game.Stats.WardKilled),
+		YearMonth:      createYear + " " + createMonth,
+		Date:           createTime,
 	}
 }
 
@@ -148,6 +147,8 @@ func requestRiotAPI(url string) ([]byte, error) {
 			return emptyResponse, err
 		}
 
+		defer resp.Body.Close()
+
 		error1xx := resp.StatusCode < 200
 		error3xx := resp.StatusCode >= 300 && resp.StatusCode < 400
 		error5xx := resp.StatusCode >= 500
@@ -194,7 +195,6 @@ func requestRiotAPI(url string) ([]byte, error) {
 			}
 		}
 
-		defer resp.Body.Close()
 		contents, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			printOut := "Failed to read content from: "
@@ -210,7 +210,7 @@ func requestRiotAPI(url string) ([]byte, error) {
 // returns id, name, error
 func ResolveSummonerId(name string, region string) (string, string, error) {
 	summonerNameURL := constructSummonerNameURL(name, region)
-	contents, err := requestRiotAPI(summonerNameURL);
+	contents, err := requestRiotAPI(summonerNameURL)
 
 	if err != nil {
 		return "", "", err
