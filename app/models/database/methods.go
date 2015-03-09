@@ -254,7 +254,7 @@ func GetUpdatePlayers() ([]dataFormat.BasicPlayer, int) {
 		"nextlongupdate": 1,
 	}
 
-	it := players.Find(nil).Select(query).Sort("nextupdate").Iter()
+	it := players.Find(nil).Select(query).Limit(500).Sort("nextupdate").Iter()
 
 	var player dataFormat.BasicPlayer
 	for it.Next(&player) {
@@ -269,6 +269,17 @@ This is probably due to corrupt data, updating player...`)
 			} else {
 				break
 			}
+		}
+	}
+
+	if err := it.Close(); err != nil {
+		if isDisconnected(err.Error()) {
+			go Connect()
+			return []dataFormat.BasicPlayer{}, Down
+		} else {
+			printOut := "GetUpdates Database Close Error: "
+			revel.ERROR.Println(printOut + err.Error())
+			return []dataFormat.BasicPlayer{}, Error
 		}
 	}
 
@@ -305,7 +316,7 @@ func GetLongUpdatePlayers() ([]dataFormat.BasicPlayer, int) {
 		"nextlongupdate": 1,
 	}
 
-	it := players.Find(nil).Select(query).Sort("nextlongupdate").Iter()
+	it := players.Find(nil).Select(query).Limit(500).Sort("nextlongupdate").Iter()
 
 	var player dataFormat.BasicPlayer
 	for it.Next(&player) {
