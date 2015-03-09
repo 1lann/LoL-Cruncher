@@ -323,6 +323,17 @@ This is probably due to corrupt data, updating player...`)
 		}
 	}
 
+	if err := it.Close(); err != nil {
+		if isDisconnected(err.Error()) {
+			go Connect()
+			return []dataFormat.BasicPlayer{}, Down
+		} else {
+			printOut := "GetLongUpdates Database Close Error: "
+			revel.ERROR.Println(printOut + err.Error())
+			return []dataFormat.BasicPlayer{}, Error
+		}
+	}
+
 	err := it.Err()
 	if err != nil {
 		if isDisconnected(err.Error()) {
