@@ -97,7 +97,7 @@ var filtersAreaTemplate = Handlebars.compile(filtersAreaSource);
 
 var championCardSource = '\
 <div class="stats-card">\
-	<img class="champion-image" src="//ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/{{imageName}}">\
+	<img class="champion-image" src="//ddragon.leagueoflegends.com/cdn/5.5.1/img/champion/{{imageName}}">\
 	<div class="champion-label">\
 		<p class="title">Stats for {{displayName}}</p>\
 		<p class="subheading">{{dateFilter}}</p>\
@@ -178,7 +178,7 @@ var tableStatsSource = '\
 var tableStatsTemplate = Handlebars.compile(tableStatsSource);
 
 var tableRowSource = '\
-<td><img src="//ddragon.leagueoflegends.com/cdn/5.1.1/img/champion/{{imageName}}"></td>\
+<td><img src="//ddragon.leagueoflegends.com/cdn/5.5.1/img/champion/{{imageName}}"></td>\
 <td>{{championName}}</td>\
 <td>{{games}}</td>\
 <td class="won">{{wins}}</td>\
