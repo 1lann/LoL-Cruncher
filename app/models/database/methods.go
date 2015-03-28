@@ -249,7 +249,6 @@ func GetUpdatePlayers() ([]dataFormat.BasicPlayer, int) {
 	query := bson.M{
 		"region":         1,
 		"id":             1,
-		"recordstart":    1,
 		"nextupdate":     1,
 		"nextlongupdate": 1,
 	}
@@ -311,7 +310,6 @@ func GetLongUpdatePlayers() ([]dataFormat.BasicPlayer, int) {
 	query := bson.M{
 		"region":         1,
 		"id":             1,
-		"recordstart":    1,
 		"nextupdate":     1,
 		"nextlongupdate": 1,
 	}
