@@ -4,8 +4,8 @@ import (
 	"cruncher/app/models/cron"
 	"cruncher/app/models/database"
 	"cruncher/app/models/riotapi"
+	"github.com/revel/modules/static/app/controllers"
 	"github.com/revel/revel"
-	"github.com/revel/revel/modules/static/app/controllers"
 	"time"
 )
 
