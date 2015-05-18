@@ -183,6 +183,22 @@ func GetBrowserPlayers() ([]dataFormat.BrowserPlayer, int) {
 	return result, Yes
 }
 
+func addPlayer(player dataFormat.Player) int {
+	revel.INFO.Println("Player does not exist, adding")
+	err := players.Insert(player)
+	if err != nil {
+		if isDisconnected(err.Error()) {
+			go Connect()
+			return Down
+		} else {
+			printOut := "addPlayer Database Error: "
+			revel.ERROR.Println(printOut + err.Error())
+			return Error
+		}
+	}
+	return Yes
+}
+
 func StoreSummonerData(player dataFormat.Player) int {
 	if !IsConnected {
 		go Connect()
@@ -195,22 +211,14 @@ func StoreSummonerData(player dataFormat.Player) int {
 	err := players.Update(query, bson.M{"$set": player})
 	if err != nil {
 		if err == mgo.ErrNotFound {
-			revel.INFO.Println("Player does not exist, adding")
-			err = players.Insert(player)
-			if err != nil {
-				if isDisconnected(err.Error()) {
-					go Connect()
-					return Down
-				} else {
-					printOut := "StoreSummonerData Database Error: "
-					revel.ERROR.Println(printOut + err.Error())
-					return Error
-				}
-			}
-			return Yes
+			return addPlayer(player)
 		} else if isDisconnected(err.Error()) {
 			go Connect()
 			return Down
+		} else {
+			printOut := "StoreSummonerData Database Error: "
+			revel.ERROR.Println(printOut + err.Error())
+			return Error
 		}
 	}
 	return Yes
