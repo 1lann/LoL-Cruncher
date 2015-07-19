@@ -49,6 +49,12 @@ func databaseRecover() {
 
 func Connect() {
 	if !isConnecting {
+		isConnecting = true
+
+		defer func() {
+			isConnecting = false
+		}()
+
 		defer databaseRecover()
 
 		IsConnected = false
@@ -57,8 +63,7 @@ func Connect() {
 			activeSession.Close()
 		}
 
-		isConnecting = true
-		revel.INFO.Println("Connecting...")
+		revel.ERROR.Println("Attempting to reconnect...")
 
 		databaseIp, found := revel.Config.String("database.ip")
 
@@ -77,7 +82,6 @@ func Connect() {
 
 		session, err := mgo.DialWithTimeout(databaseIp, time.Second*3)
 		if err != nil {
-			isConnecting = false
 			IsConnected = false
 			revel.ERROR.Println(err)
 			return
@@ -103,6 +107,5 @@ func Connect() {
 		playerIds = session.DB("cruncher").C("playerids")
 
 		IsConnected = true
-		isConnecting = false
 	}
 }
