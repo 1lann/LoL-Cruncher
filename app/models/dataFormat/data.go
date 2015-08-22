@@ -1,4 +1,3 @@
-
 // LoL Cruncher - A Historical League of Legends Statistics Tracker
 // Copyright (C) 2015  Jason Chu (1lann) 1lanncontact@gmail.com
 
@@ -18,111 +17,118 @@
 package dataFormat
 
 import (
+	"strings"
 	"time"
 )
 
 type SideStats struct {
-	Wins uint32
-	Losses uint32
+	Wins   int
+	Losses int
 }
 
 type DetailedNumberOf struct {
-	Wins uint32
-	Losses uint32
-	TimePlayed uint32 // Seconds
-	Kills uint32
-	Assists uint32
-	Deaths uint32
-	DoubleKills uint32
-	TripleKills uint32
-	QuadraKills uint32
-	PentaKills uint32
-	GoldEarned uint32
-	MinionsKilled uint32
-	MonstersKilled uint32
-	WardsPlaced uint32
-	WardsKilled uint32
-	Blue SideStats
-	Red SideStats
+	InternalPlayerId string `gorethink:"ip" json:"-"`
+	TimePeriod       string `gorethink:"p" json:"p"`
+	Queue            string `gorethink:"q" json:"q"`
+
+	Wins           int `gorethink:"w" json:"w"`
+	Losses         int `gorethink:"l" json:"l"`
+	TimePlayed     int `gorethink:"t" json:"t"`
+	Kills          int `gorethink:"k" json:"k"`
+	Assists        int `gorethink:"a" json:"a"`
+	Deaths         int `gorethink:"d" json:"d"`
+	DoubleKills    int `gorethink:"dk" json:"dk"`
+	TripleKills    int `gorethink:"tk" json:"tk"`
+	QuadraKills    int `gorethink:"qk" json:"qk"`
+	PentaKills     int `gorethink:"pk" json:"pk"`
+	GoldEarned     int `gorethink:"g" json:"g"`
+	MinionsKilled  int `gorethink:"m" json:"m"`
+	MonstersKilled int `gorethink:"n" json:"n"`
+	WardsPlaced    int `gorethink:"wp" json:"wp"`
+	WardsKilled    int `gorethink:"wk" json:"wk"`
+	Blue           struct {
+		Wins   int `gorethink:"w" json:"w"`
+		Losses int `gorethink:"l" json:"l"`
+	} `gorethink:"b"`
+	Red struct {
+		Wins   int `gorethink:"w" json:"w"`
+		Losses int `gorethink:"l" json:"l"`
+	} `gorethink:"r"`
 }
 
 type BasicNumberOf struct {
-	Wins uint32
-	Losses uint32
-	TimePlayed uint32 // Seconds
-	Kills uint32
-	Assists uint32
-	Deaths uint32
-	GoldEarned uint32
-	MinionsKilled uint32
-	MonstersKilled uint32
-	WardsPlaced uint32
-}
+	InternalPlayerId string `gorethink:"ip" json:"-"`
+	Champion         string `gorethink:"c" json:"c"`
+	TimePeriod       string `gorethink:"p" json:"p"`
+	Queue            string `gorethink:"q" json:"q"`
 
-type Stats struct {
-	All DetailedNumberOf
-	Champions map[string]BasicNumberOf
-}
-
-type QueueStats struct {
-	AllMonths Stats
-	MonthlyStats map[string]Stats
+	Wins           int `gorethink:"w" json:"w"`
+	Losses         int `gorethink:"l" json:"l"`
+	TimePlayed     int `gorethink:"t" json:"t"`
+	Kills          int `gorethink:"k" json:"k"`
+	Assists        int `gorethink:"a" json:"a"`
+	Deaths         int `gorethink:"d" json:"d"`
+	GoldEarned     int `gorethink:"g" json:"g"`
+	MinionsKilled  int `gorethink:"m" json:"m"`
+	MonstersKilled int `gorethink:"n" json:"n"`
+	WardsPlaced    int `gorethink:"wp" json:"wp"`
 }
 
 type Player struct {
-	Region string // Region code. Ex: oce
-	Tier string
-	Id string
-	RecordStart string // Date of first ever game recorded
-	NextUpdate time.Time
-	NextLongUpdate time.Time
-	ProcessedGames []string
-	AllQueues QueueStats
-	QueueStats map[string]QueueStats
+	// nr for normalized name region (internally)
+	Region         string    `gorethink:"r" json:"region"`
+	Tier           string    `gorethink:"t" json:"-"`
+	SummonerId     string    `gorethink:"pi" json:"-"`
+	InternalId     string    `gorethink:"id,omitempty" json:"-"`
+	SummonerName   string    `gorethink:"sn" json:"summonerName"`
+	NormalizedName string    `gorethink:"nn" json:"-"`
+	RecordStart    string    `gorethink:"rs" json:"-"` // Date of first ever game recorded
+	NextUpdate     time.Time `gorethink:"nu" json:"-"`
+	NextLongUpdate time.Time `gorethink:"nl" json:"-"`
+	ProcessedGames []string  `gorethink:"p" json:"-"`
 }
 
-type BasicPlayer struct {
-	Region string
-	Id string
-	Tier string
-	RecordStart time.Time
-	NextUpdate time.Time
-	NextLongUpdate time.Time
-}
-
-type BrowserPlayer struct {
-	Name string
-	Region string
+type PlayerData struct {
+	Detailed       []DetailedNumberOf `gorethink:"detailed" json:"detailed"`
+	Basic          []BasicNumberOf    `gorethink:"basic" json:"basic"`
+	SummonerName   string             `gorethink:"sn" json:"summonerName"`
+	Region         string             `gorethink:"r" json:"r"`
+	RecordStart    string             `gorethink:"rs" json:"rs"`
+	ProcessedGames []string           `gorethink:"p" json:"-"`
 }
 
 type Champion struct {
-	Name string
-	Title string
-	SquareURL string
-	SplashURL string
+	Name        string
+	Title       string
+	SquareURL   string
+	SplashURL   string
 	PortraitURL string
 }
 
 type Game struct {
-	DidWin bool
-	IsOnBlue bool
-	IsNormals bool // AKA Not Custom
-	ChampionId string
-	Duration uint32
-	Id string
-	Type string
-	Kills uint32
-	Assists uint32
-	Deaths uint32
-	DoubleKills uint32
-	TripleKills uint32
-	QuadraKills uint32
-	PentaKills uint32
-	GoldEarned uint32
-	MinionsKilled uint32
-	MonstersKilled uint32
-	WardsPlaced uint32
-	WardsKilled uint32
-	YearMonth string
-	Date time.Time
+	DidWin         bool
+	IsOnBlue       bool
+	IsNormals      bool // AKA Not Custom
+	ChampionId     string
+	Duration       int
+	Id             string
+	Type           string
+	Kills          int
+	Assists        int
+	Deaths         int
+	DoubleKills    int
+	TripleKills    int
+	QuadraKills    int
+	PentaKills     int
+	GoldEarned     int
+	MinionsKilled  int
+	MonstersKilled int
+	WardsPlaced    int
+	WardsKilled    int
+	YearMonth      string
+	Date           time.Time
+}
+
+func NormalizeName(name string) string {
+	return strings.ToLower(strings.Replace(name, " ", "", -1))
 }

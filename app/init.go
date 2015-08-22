@@ -11,7 +11,7 @@ import (
 
 func startDatabase() {
 	go func() {
-		time.Sleep(time.Duration(10) * time.Second)
+		time.Sleep(time.Duration(5) * time.Second)
 		database.Connect()
 		cron.Start()
 	}()

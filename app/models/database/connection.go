@@ -17,23 +17,22 @@
 package database
 
 import (
+	r "github.com/dancannon/gorethink"
 	"github.com/revel/revel"
-	"gopkg.in/mgo.v2"
+	"io"
 	"strings"
-	"time"
 )
 
 var IsConnected bool
 var isConnecting bool
-var activeSession *mgo.Session
-var players *mgo.Collection
-var playerIds *mgo.Collection
+var activeSession *r.Session
 
-func isDisconnected(err string) bool {
-	if err == "EOF" || err == "no reachable servers" ||
-		err == "Closed explicitly" ||
-		strings.Contains(err, "connection reset by peer") ||
-		strings.Contains(err, "i/o timeout") {
+func isDisconnected(err error) bool {
+	if err == r.ErrBadConn || err == r.ErrConnectionClosed ||
+		err == r.ErrNoConnections || err == r.ErrNoConnectionsStarted ||
+		err == io.EOF ||
+		(err != nil && strings.Contains(err.Error(), "broken pipe")) {
+		go Connect()
 		return true
 	} else {
 		return false
@@ -42,7 +41,7 @@ func isDisconnected(err string) bool {
 
 func databaseRecover() {
 	if r := recover(); r != nil {
-		revel.ERROR.Println("Recovered from database driver panic")
+		revel.ERROR.Println("database: recovered from database driver panic")
 		revel.ERROR.Println(r)
 	}
 }
@@ -80,31 +79,20 @@ func Connect() {
 				"assuming development mode with no login.")
 		}
 
-		session, err := mgo.DialWithTimeout(databaseIp, time.Second*3)
+		session, err := r.Connect(r.ConnectOpts{
+			Address:  databaseIp,
+			Database: "cruncher",
+			AuthKey:  databasePassword,
+			MaxIdle:  100,
+			MaxOpen:  100,
+		})
 		if err != nil {
 			IsConnected = false
 			revel.ERROR.Println(err)
 			return
 		}
 
-		session.SetMode(mgo.Monotonic, true)
-		session.SetSafe(&mgo.Safe{})
-		session.SetSyncTimeout(time.Second * 3)
-		session.SetSocketTimeout(time.Second * 3)
-
 		activeSession = session
-
-		if hasPassword {
-			err = session.DB("cruncher").Login("webapp", databasePassword)
-			if err != nil {
-				revel.ERROR.Println("Database authentication failed! " +
-					"Assuming database is down.")
-				return
-			}
-		}
-
-		players = session.DB("cruncher").C("players")
-		playerIds = session.DB("cruncher").C("playerids")
 
 		IsConnected = true
 	}

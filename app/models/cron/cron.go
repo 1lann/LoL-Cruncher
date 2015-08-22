@@ -22,146 +22,120 @@ import (
 	"cruncher/app/models/database"
 	"cruncher/app/models/riotapi"
 	"github.com/revel/revel"
+	"sync"
 	"time"
 )
 
-var monitorRunning bool = false
-var longMonitorRunning bool = false
-var updateRate = 2000 // 2000 by default, also replicated at the bottom of
-// the file in Start()
+var updateRate int
 
-var ProcessingRunning bool = false
+var updateHealth = 5
+var longUpdateHealth = 5
+var updateLock = &sync.Mutex{}
 
-func processPlayers(players []dataFormat.BasicPlayer) {
-	ProcessingRunning = true
-	displayErrors := true
-
-	for _, itPlayer := range players {
-		time.Sleep(time.Duration(updateRate) * time.Millisecond)
-		go func(player dataFormat.BasicPlayer) {
-			revel.INFO.Printf("Processing player: %v", player.Id)
-
-			playerGames, err := riotapi.GetRecentGames(player.Id, player.Region)
-			if err != nil {
-				if displayErrors {
-					revel.ERROR.Println("Failed to load recent games!")
-					revel.ERROR.Println(err)
-					displayErrors = false
-				}
-				return
-			}
-
-			playerData, resp := database.GetSummonerData(player.Id,
-				player.Region)
-
-			if resp != database.Yes {
-				if displayErrors {
-					revel.ERROR.Println("Non-ok response from " +
-						"database while processing!")
-					displayErrors = false
-				}
-				return
-			}
-
-			newPlayer := crunch.Crunch(playerData, playerGames)
-			newPlayer.NextUpdate = crunch.GetNextUpdate(playerGames)
-
-			revel.INFO.Printf("Next update time in hours: %v",
-				time.Since(newPlayer.NextUpdate).Hours())
-
-			resp = database.StoreSummonerData(newPlayer)
-			if (resp != database.Yes) && displayErrors {
-				revel.ERROR.Println("Non-ok response for storing player data")
-				displayErrors = false
-			}
-		}(itPlayer)
+func UpdatePlayer(player dataFormat.Player) {
+	if updateHealth <= 0 {
+		return
 	}
 
-	ProcessingRunning = false
+	games, err := riotapi.GetRecentGames(player.SummonerId, player.Region)
+	if err != nil {
+		revel.WARN.Println("cron: failed to get games for player:", player.InternalId)
+		revel.WARN.Println(err)
+		updateHealth -= 1
+		return
+	}
+
+	updateHealth += 1
+
+	crunch.Crunch(player, games)
 }
 
-func processTiers(players []dataFormat.BasicPlayer) {
-	ProcessingRunning = true
-	displayErrors := true
-
-	for _, itPlayer := range players {
-		time.Sleep(time.Duration(updateRate) * time.Millisecond)
-		go func(player dataFormat.BasicPlayer) {
-			revel.INFO.Printf("Processing tier for: %v", player.Id)
-
-			tier, err := riotapi.GetTier(player.Id, player.Region)
-			if err != nil {
-				if displayErrors {
-					revel.ERROR.Println("Failed to load player tier!")
-					revel.ERROR.Println(err)
-					displayErrors = false
-				}
-				return
-			}
-
-			nextLongUpdate := time.Now().Add(time.Duration(72) * time.Hour)
-
-			resp := database.StoreTier(player.Id, player.Region, tier,
-				nextLongUpdate)
-			if (resp != database.Yes) && displayErrors {
-				revel.ERROR.Println("Non-ok response from " +
-					"database while storing tier!")
-				displayErrors = false
-			}
-		}(itPlayer)
+func LongUpdatePlayer(player dataFormat.Player) {
+	if longUpdateHealth <= 0 {
+		return
 	}
 
-	ProcessingRunning = false
+	tier, err := riotapi.GetTier(player.SummonerId, player.Region)
+	if err != nil {
+		revel.WARN.Println("cron: failed to get tier for player:", player.InternalId)
+		revel.WARN.Println(err)
+		longUpdateHealth -= 1
+		return
+	}
+
+	longUpdateHealth += 1
+
+	tierData := struct {
+		Tier           string    `gorethink:"t"`
+		NextLongUpdate time.Time `gorethink:"nl"`
+	}{tier, time.Now().Add(time.Hour * 168)}
+
+	if err = database.UpdatePlayerInformation(player, tierData); err != nil {
+		revel.WARN.Println("cron: failed to update player tier:",
+			player.InternalId)
+		revel.WARN.Println(err)
+	}
 }
 
 func RecordMonitor() {
-	if monitorRunning {
-		revel.ERROR.Println("Monitor already running!")
-		return
-	}
-	monitorRunning = true
-	for true {
-		players, resp := database.GetUpdatePlayers()
-
-		if resp != database.Yes {
-			revel.ERROR.Println("RecordMonitor non-ok response from database!")
-			time.Sleep(time.Duration(10) * time.Minute)
-			continue
+	for {
+		updateLock.Lock()
+		players := []dataFormat.Player{}
+		for {
+			var err error
+			players, err = database.GetUpdatePlayers()
+			if err != nil {
+				revel.WARN.Println("cron: failed to get player updates:", err)
+				time.Sleep(time.Minute)
+			} else {
+				break
+			}
 		}
 
-		for ProcessingRunning {
-			time.Sleep(time.Duration(10) * time.Second)
+		updateHealth = 5
+
+		for _, player := range players {
+			go UpdatePlayer(player)
+			time.Sleep(time.Millisecond * time.Duration(updateRate))
 		}
 
-		go processPlayers(players)
+		if updateHealth <= 0 {
+			revel.WARN.Println("cron: player update stopped due to no health")
+		}
+		updateLock.Unlock()
 
-		time.Sleep(time.Duration(60) * time.Minute)
+		time.Sleep(time.Hour)
 	}
 }
 
-func LongTermMonitor() {
-	if longMonitorRunning {
-		revel.ERROR.Println("Long term mointor already running!")
-		return
-	}
-	longMonitorRunning = true
-	for true {
-		players, resp := database.GetLongUpdatePlayers()
-
-		if resp != database.Yes {
-			revel.ERROR.Println("LongTermMonitor non-ok " +
-				"response from database!")
-			time.Sleep(time.Duration(10) * time.Minute)
-			continue
+func LongMonitor() {
+	for {
+		updateLock.Lock()
+		players := []dataFormat.Player{}
+		for {
+			var err error
+			players, err = database.GetLongUpdatePlayers()
+			if err != nil {
+				revel.WARN.Println("cron: failed to get player updates:", err)
+				time.Sleep(time.Minute)
+			} else {
+				break
+			}
 		}
 
-		for ProcessingRunning {
-			time.Sleep(time.Duration(10) * time.Second)
+		longUpdateHealth = 5
+
+		for _, player := range players {
+			go LongUpdatePlayer(player)
+			time.Sleep(time.Millisecond * time.Duration(updateRate))
 		}
 
-		go processTiers(players)
+		if longUpdateHealth <= 0 {
+			revel.WARN.Println("cron: player update stopped due to no health")
+		}
+		updateLock.Unlock()
 
-		time.Sleep(time.Duration(24) * time.Hour)
+		time.Sleep(time.Hour * 24)
 	}
 }
 
@@ -169,6 +143,6 @@ func Start() {
 	updateRate = revel.Config.IntDefault("updaterate", 2000)
 	revel.INFO.Printf("Update rate set to: %v ms", updateRate)
 	go RecordMonitor()
-	go LongTermMonitor()
+	go LongMonitor()
 	revel.INFO.Println("Now running monitors")
 }

@@ -29,6 +29,14 @@ import (
 
 var apiKey string
 
+var (
+	ErrBadRequest   = errors.New("riotapi: bad request")
+	ErrNotFound     = errors.New("riotapi: not found")
+	ErrRateLimit    = errors.New("riotapi: rate limit")
+	ErrServerError  = errors.New("riotapi: server error")
+	ErrUnauthorized = errors.New("riotapi: unauthorized")
+)
+
 type Player struct {
 	ChampionId int
 	TeamId     int
@@ -81,21 +89,21 @@ func convertGame(game Game) dataFormat.Game {
 		IsOnBlue:       (game.TeamId == 100),
 		IsNormals:      (isMatchedGame && isClassicGame),
 		ChampionId:     strconv.Itoa(game.ChampionId),
-		Duration:       uint32(game.Stats.TimePlayed),
+		Duration:       game.Stats.TimePlayed,
 		Id:             strconv.Itoa(game.GameId),
 		Type:           game.SubType,
-		Kills:          uint32(game.Stats.ChampionsKilled),
-		Assists:        uint32(game.Stats.Assists),
-		Deaths:         uint32(game.Stats.NumDeaths),
-		DoubleKills:    uint32(game.Stats.DoubleKills),
-		TripleKills:    uint32(game.Stats.TripleKills),
-		QuadraKills:    uint32(game.Stats.QuadraKills),
-		PentaKills:     uint32(game.Stats.PentaKills),
-		GoldEarned:     uint32(game.Stats.GoldEarned),
-		MinionsKilled:  uint32(game.Stats.MinionsKilled),
-		MonstersKilled: uint32(game.Stats.NeutralMinionsKilled),
-		WardsPlaced:    uint32(game.Stats.WardPlaced),
-		WardsKilled:    uint32(game.Stats.WardKilled),
+		Kills:          game.Stats.ChampionsKilled,
+		Assists:        game.Stats.Assists,
+		Deaths:         game.Stats.NumDeaths,
+		DoubleKills:    game.Stats.DoubleKills,
+		TripleKills:    game.Stats.TripleKills,
+		QuadraKills:    game.Stats.QuadraKills,
+		PentaKills:     game.Stats.PentaKills,
+		GoldEarned:     game.Stats.GoldEarned,
+		MinionsKilled:  game.Stats.MinionsKilled,
+		MonstersKilled: game.Stats.NeutralMinionsKilled,
+		WardsPlaced:    game.Stats.WardPlaced,
+		WardsKilled:    game.Stats.WardKilled,
 		YearMonth:      createYear + " " + createMonth,
 		Date:           createTime,
 	}
@@ -135,7 +143,7 @@ func requestRiotAPI(url string) ([]byte, error) {
 		if isRateBlocked() {
 			printOut := "Requested reject due to rate blocking: "
 			revel.WARN.Println(printOut + url)
-			return emptyResponse, errors.New("Rate Limit")
+			return emptyResponse, ErrRateLimit
 		}
 
 		// TODO Comment out in the future?
@@ -163,18 +171,18 @@ func requestRiotAPI(url string) ([]byte, error) {
 				time.Sleep(time.Second)
 				continue
 			} else {
-				return emptyResponse, errors.New("Server Error")
+				return emptyResponse, ErrServerError
 			}
 		}
 
 		// API Errors handled here
 		if resp.StatusCode >= 400 && resp.StatusCode < 500 {
 			if resp.StatusCode == 400 {
-				return emptyResponse, errors.New("Bad Request")
+				return emptyResponse, ErrBadRequest
 			} else if resp.StatusCode == 401 {
-				return emptyResponse, errors.New("Unauthorized")
+				return emptyResponse, ErrUnauthorized
 			} else if resp.StatusCode == 404 {
-				return emptyResponse, errors.New("Not Found")
+				return emptyResponse, ErrNotFound
 			} else if resp.StatusCode == 429 {
 				printOut := "Hit maximum query limit from: "
 				revel.WARN.Println(printOut + url)
@@ -184,14 +192,14 @@ func requestRiotAPI(url string) ([]byte, error) {
 					revel.ERROR.Println("Cannot determine retry after time!")
 					rateLimitBlock(5)
 				} else {
-					rateLimitBlock(retryAfter)
+					rateLimitBlock(retryAfter + 1)
 				}
 
-				return emptyResponse, errors.New("Rate Limit")
+				return emptyResponse, ErrRateLimit
 			} else {
 				printOut := resp.Status + " Response from: "
 				revel.ERROR.Println(printOut + url)
-				return emptyResponse, errors.New("Server Error")
+				return emptyResponse, ErrServerError
 			}
 		}
 
@@ -204,7 +212,7 @@ func requestRiotAPI(url string) ([]byte, error) {
 
 		return contents, nil
 	}
-	return emptyResponse, errors.New("Server Error")
+	return emptyResponse, ErrServerError
 }
 
 // returns id, name, error

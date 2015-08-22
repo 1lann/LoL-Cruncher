@@ -18,350 +18,323 @@ package database
 
 import (
 	"cruncher/app/models/dataFormat"
-	"github.com/revel/revel"
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
-	"strings"
+	"errors"
+	// "fmt"
+	r "github.com/dancannon/gorethink"
 	"time"
 )
 
-const (
-	Yes   = 1
-	No    = 2
-	Down  = 3
-	Error = 4
+var LastPlayerUpdate = time.Now()
+
+var (
+	ErrDisconnected      = errors.New("database: disconnected")
+	ErrNoResults         = errors.New("database: no results")
+	ErrInsertDiscrepancy = errors.New("database: insert discrepancy")
 )
 
-type playerId struct {
-	Id         string
-	Region     string
-	Name       string
-	Normalized string
-}
-
-var LastPlayerUpdate time.Time = time.Now()
-
-// returns id, resolved name, and response
-func GetSummonerID(name string, region string) (string, string, int) {
+func GetBrowserPlayers() ([]dataFormat.Player, error) {
 	if !IsConnected {
 		go Connect()
-		return "", "", Down
+		return []dataFormat.Player{}, ErrDisconnected
 	}
 
-	defer databaseRecover()
+	c, err := r.Table("players").Pluck("sn", "r").Run(activeSession)
+	if isDisconnected(err) {
+		return []dataFormat.Player{}, ErrDisconnected
+	} else if err != nil {
+		return []dataFormat.Player{}, err
+	}
 
-	normalizedName := strings.Replace(strings.ToLower(name), " ", "", -1)
+	results := []dataFormat.Player{}
+	err = c.All(&results)
+	c.Close()
+	if isDisconnected(err) {
+		return []dataFormat.Player{}, ErrDisconnected
+	} else if err == r.ErrEmptyResult {
+		return []dataFormat.Player{}, ErrNoResults
+	} else if err != nil {
+		return []dataFormat.Player{}, err
+	}
 
-	query := bson.M{"normalized": normalizedName, "region": region}
-	var result playerId
-	err := playerIds.Find(query).One(&result)
+	return results, nil
+}
 
-	if err != nil {
-		if err == mgo.ErrNotFound {
-			return "", "", No
-		} else if isDisconnected(err.Error()) {
-			go Connect()
-			return "", "", Down
-		} else {
-			printOut := "GetSummonerID Database Error: "
-			revel.ERROR.Println(printOut + err.Error())
-			return "", "", Error
+func GetSummonerData(name string, region string) (dataFormat.PlayerData,
+	error) {
+	if !IsConnected {
+		go Connect()
+		return dataFormat.PlayerData{}, ErrDisconnected
+	}
+
+	name = dataFormat.NormalizeName(name)
+	c, err := r.Table("players").
+		GetAllByIndex("nr", []string{name, region}).
+		Merge(func(row r.Term) interface{} {
+		return map[string]interface{}{
+			"detailed": r.DB("cruncher").Table("detailed").
+				GetAllByIndex("ip", row.Field("id")).CoerceTo("array"),
+			"basic": r.DB("cruncher").Table("basic").
+				GetAllByIndex("ip", row.Field("id")).CoerceTo("array"),
+		}
+	}).Run(activeSession)
+
+	if isDisconnected(err) {
+		return dataFormat.PlayerData{}, ErrDisconnected
+	} else if err != nil {
+		return dataFormat.PlayerData{}, err
+	}
+
+	playerData := dataFormat.PlayerData{}
+
+	err = c.One(&playerData)
+	c.Close()
+	if isDisconnected(err) {
+		return dataFormat.PlayerData{}, ErrDisconnected
+	} else if err == r.ErrEmptyResult {
+		return dataFormat.PlayerData{}, ErrNoResults
+	} else if err != nil {
+		return dataFormat.PlayerData{}, err
+	}
+
+	return playerData, nil
+}
+
+func AddToDetailedPlayer(details dataFormat.DetailedNumberOf) error {
+	if !IsConnected {
+		go Connect()
+		return ErrDisconnected
+	}
+
+	resp, err := r.Table("detailed").
+		GetAllByIndex("ip", details.InternalPlayerId).Filter(
+		map[string]string{
+			"p": details.TimePeriod,
+			"q": details.Queue,
+		}).Update(
+		map[string]interface{}{
+			"w":  r.Row.Field("w").Add(details.Wins),
+			"l":  r.Row.Field("l").Add(details.Losses),
+			"t":  r.Row.Field("t").Add(details.TimePlayed),
+			"k":  r.Row.Field("k").Add(details.Kills),
+			"a":  r.Row.Field("a").Add(details.Assists),
+			"d":  r.Row.Field("d").Add(details.Deaths),
+			"dk": r.Row.Field("dk").Add(details.DoubleKills),
+			"tk": r.Row.Field("tk").Add(details.TripleKills),
+			"qk": r.Row.Field("qk").Add(details.QuadraKills),
+			"pk": r.Row.Field("pk").Add(details.PentaKills),
+			"g":  r.Row.Field("g").Add(details.GoldEarned),
+			"m":  r.Row.Field("m").Add(details.MinionsKilled),
+			"n":  r.Row.Field("n").Add(details.MonstersKilled),
+			"wp": r.Row.Field("wp").Add(details.WardsPlaced),
+			"wk": r.Row.Field("wk").Add(details.WardsKilled),
+			"b": map[string]interface{}{
+				"w": r.Row.Field("b").Field("w").Add(details.Blue.Wins),
+				"l": r.Row.Field("b").Field("l").Add(details.Blue.Losses),
+			}, "r": map[string]interface{}{
+				"w": r.Row.Field("b").Field("w").Add(details.Red.Wins),
+				"l": r.Row.Field("b").Field("l").Add(details.Red.Losses),
+			},
+		}).RunWrite(activeSession)
+
+	if isDisconnected(err) {
+		return ErrDisconnected
+	} else if err != nil {
+		return err
+	}
+
+	if resp.Replaced+resp.Unchanged == 0 {
+		// Doesn't exist, insert new
+		resp, err := r.Table("detailed").Insert(details).RunWrite(activeSession)
+		if isDisconnected(err) {
+			return ErrDisconnected
+		} else if err != nil {
+			return err
+		} else if resp.Inserted == 0 {
+			return ErrInsertDiscrepancy
 		}
 	}
 
-	return result.Id, result.Name, Yes
+	return nil
 }
 
-func StoreSummonerID(name string, id string, region string) int {
+func AddToBasicPlayer(details dataFormat.BasicNumberOf) error {
 	if !IsConnected {
 		go Connect()
-		return Down
+		return ErrDisconnected
 	}
 
-	defer databaseRecover()
+	resp, err := r.Table("basic").
+		GetAllByIndex("ip", details.InternalPlayerId).Filter(
+		map[string]string{
+			"p": details.TimePeriod,
+			"q": details.Queue,
+			"c": details.Champion,
+		}).Update(
+		map[string]interface{}{
+			"w":  r.Row.Field("w").Add(details.Wins),
+			"l":  r.Row.Field("l").Add(details.Losses),
+			"t":  r.Row.Field("t").Add(details.TimePlayed),
+			"k":  r.Row.Field("k").Add(details.Kills),
+			"a":  r.Row.Field("a").Add(details.Assists),
+			"d":  r.Row.Field("d").Add(details.Deaths),
+			"g":  r.Row.Field("g").Add(details.GoldEarned),
+			"m":  r.Row.Field("m").Add(details.MinionsKilled),
+			"n":  r.Row.Field("n").Add(details.MonstersKilled),
+			"wp": r.Row.Field("wp").Add(details.WardsPlaced),
+		}).RunWrite(activeSession)
 
-	// Check for identical id, if so, delete the old one
-	query := bson.M{"id": id, "region": region}
-	var result playerId
-	err := playerIds.Find(query).One(&result)
-	if err == nil {
-		// Clear it
-		printOut := "Summoner name change detected. From: " + result.Name +
-			" to " + name + " with ID: " + id
-		revel.WARN.Println(printOut)
-		err = playerIds.Remove(query)
-	} else if err != mgo.ErrNotFound {
-		if isDisconnected(err.Error()) {
-			go Connect()
-			return Down
-		} else {
-			printOut := "StoreSummonerID Database Error: "
-			revel.ERROR.Println(printOut + err.Error())
-			return Error
+	if isDisconnected(err) {
+		return ErrDisconnected
+	} else if err != nil {
+		return err
+	}
+
+	if resp.Replaced+resp.Unchanged == 0 {
+		// Doesn't exist, insert new
+		resp, err := r.Table("basic").Insert(details).RunWrite(activeSession)
+		if isDisconnected(err) {
+			return ErrDisconnected
+		} else if err != nil {
+			return err
+		} else if resp.Inserted == 0 {
+			return ErrInsertDiscrepancy
 		}
+	}
+
+	return nil
+}
+
+func CreatePlayer(player dataFormat.Player) (string, error) {
+	if !IsConnected {
+		go Connect()
+		return "", ErrDisconnected
+	}
+
+	// Check if player exists already
+	c, err := r.Table("players").GetAllByIndex("pi", player.SummonerId).
+		Filter(map[string]string{"region": player.Region}).Field("id").
+		Run(activeSession)
+
+	if isDisconnected(err) {
+		return "", ErrDisconnected
+	} else if err != nil {
+		return "", err
+	}
+
+	internalId := ""
+	err = c.One(&internalId)
+	c.Close()
+	if isDisconnected(err) {
+		return "", ErrDisconnected
+	} else if err != r.ErrEmptyResult {
+		// Update new summoner name
+		changes, err := r.Table("players").Get(internalId).Update(
+			map[string]string{
+				"sn": player.SummonerName,
+				"nn": player.NormalizedName,
+			}).RunWrite(activeSession)
+		if isDisconnected(err) {
+			return "", ErrDisconnected
+		} else if err != nil {
+			return "", err
+		} else if changes.Updated == 0 {
+			return "", ErrInsertDiscrepancy
+		}
+
+		return internalId, nil
+	}
+
+	// Get the first object
+
+	changes, err := r.Table("players").Insert(player).RunWrite(activeSession)
+	if isDisconnected(err) {
+		return "", ErrDisconnected
+	} else if err != nil {
+		return "", err
+	}
+
+	// changes.
+
+	if len(changes.GeneratedKeys) == 0 {
+		return "", errors.New("database: missing generated keys")
+	}
+
+	return changes.GeneratedKeys[0], nil
+}
+
+func GetUpdatePlayers() ([]dataFormat.Player, error) {
+	if !IsConnected {
+		go Connect()
+		return []dataFormat.Player{}, ErrDisconnected
+	}
+
+	c, err := r.Table("players").Between(r.MinVal, time.Now(),
+		r.BetweenOpts{Index: "nu"}).
+		OrderBy(r.OrderByOpts{Index: "nu"}).Pluck("p", "pi", "r", "id").
+		Limit(1000).Run(activeSession)
+
+	if isDisconnected(err) {
+		return []dataFormat.Player{}, ErrDisconnected
+	} else if err != nil {
+		return []dataFormat.Player{}, err
+	}
+
+	players := []dataFormat.Player{}
+	err = c.All(&players)
+
+	if isDisconnected(err) {
+		return []dataFormat.Player{}, ErrDisconnected
+	} else if err != nil {
+		return []dataFormat.Player{}, err
+	}
+
+	return players, nil
+}
+
+func GetLongUpdatePlayers() ([]dataFormat.Player, error) {
+	if !IsConnected {
+		go Connect()
+		return []dataFormat.Player{}, ErrDisconnected
+	}
+
+	c, err := r.Table("players").Between(r.MinVal, time.Now(),
+		r.BetweenOpts{Index: "nl"}).
+		OrderBy(r.OrderByOpts{Index: "nl"}).Pluck("p", "pi", "r", "id").
+		Limit(1000).Run(activeSession)
+
+	if isDisconnected(err) {
+		return []dataFormat.Player{}, ErrDisconnected
+	} else if err != nil {
+		return []dataFormat.Player{}, err
+	}
+
+	players := []dataFormat.Player{}
+	err = c.All(&players)
+
+	if isDisconnected(err) {
+		return []dataFormat.Player{}, ErrDisconnected
+	} else if err != nil {
+		return []dataFormat.Player{}, err
+	}
+
+	return players, nil
+}
+
+func UpdatePlayerInformation(player dataFormat.Player, data interface{}) error {
+	if !IsConnected {
+		go Connect()
+		return ErrDisconnected
+	}
+
+	_, err := r.Table("players").GetAllByIndex("id", player.InternalId).
+		Update(data).RunWrite(activeSession)
+	if isDisconnected(err) {
+		return ErrDisconnected
+	} else if err != nil {
+		return err
 	}
 
 	LastPlayerUpdate = time.Now()
 
-	normalizedName := strings.Replace(strings.ToLower(name), " ", "", -1)
-
-	// Continue here if everything is clean
-	newPlayer := playerId{
-		Id:         id,
-		Region:     region,
-		Name:       name,
-		Normalized: normalizedName,
-	}
-	err = playerIds.Insert(newPlayer)
-
-	if err != nil {
-		if isDisconnected(err.Error()) {
-			go Connect()
-			return Down
-		} else {
-			printOut := "StoreSummonerID Database Error: "
-			revel.ERROR.Println(printOut + err.Error())
-			return Error
-		}
-	}
-	return Yes
-}
-
-func GetSummonerData(id string, region string) (dataFormat.Player, int) {
-	if !IsConnected {
-		go Connect()
-		return dataFormat.Player{}, Down
-	}
-
-	defer databaseRecover()
-
-	query := bson.M{"id": id, "region": region}
-	var result dataFormat.Player
-	err := players.Find(query).One(&result)
-
-	if err != nil {
-		if err == mgo.ErrNotFound {
-			return dataFormat.Player{}, No
-		} else if isDisconnected(err.Error()) {
-			go Connect()
-			return dataFormat.Player{}, Down
-		} else {
-			printOut := "GetSummonerData Database Error: "
-			revel.ERROR.Println(printOut + err.Error())
-			return dataFormat.Player{}, Error
-		}
-	}
-
-	return result, Yes
-}
-
-func GetBrowserPlayers() ([]dataFormat.BrowserPlayer, int) {
-	if !IsConnected {
-		go Connect()
-		return []dataFormat.BrowserPlayer{}, Down
-	}
-
-	defer databaseRecover()
-
-	var result []dataFormat.BrowserPlayer
-	query := bson.M{"name": 1, "region": 1}
-	err := playerIds.Find(nil).Sort("normalized").Select(query).All(&result)
-
-	if err != nil {
-		if err == mgo.ErrNotFound {
-			return []dataFormat.BrowserPlayer{}, Yes
-		} else if isDisconnected(err.Error()) {
-			go Connect()
-			return []dataFormat.BrowserPlayer{}, Down
-		} else {
-			printOut := "GetBrowserPlayers Database Error: "
-			revel.ERROR.Println(printOut + err.Error())
-			return []dataFormat.BrowserPlayer{}, Error
-		}
-	}
-
-	return result, Yes
-}
-
-func addPlayer(player dataFormat.Player) int {
-	revel.INFO.Println("Player does not exist, adding")
-	err := players.Insert(player)
-	if err != nil {
-		if isDisconnected(err.Error()) {
-			go Connect()
-			return Down
-		} else {
-			printOut := "addPlayer Database Error: "
-			revel.ERROR.Println(printOut + err.Error())
-			return Error
-		}
-	}
-	return Yes
-}
-
-func StoreSummonerData(player dataFormat.Player) int {
-	if !IsConnected {
-		go Connect()
-		return Down
-	}
-
-	defer databaseRecover()
-
-	query := bson.M{"id": player.Id, "region": player.Region}
-	err := players.Update(query, bson.M{"$set": player})
-	if err != nil {
-		if err == mgo.ErrNotFound {
-			return addPlayer(player)
-		} else if isDisconnected(err.Error()) {
-			go Connect()
-			return Down
-		} else {
-			printOut := "StoreSummonerData Database Error: "
-			revel.ERROR.Println(printOut + err.Error())
-			return Error
-		}
-	}
-	return Yes
-}
-
-func StoreTier(id string, region string, tier string,
-	nextLongUpdate time.Time) int {
-	if !IsConnected {
-		go Connect()
-		return Down
-	}
-
-	defer databaseRecover()
-
-	query := bson.M{"id": id, "region": region}
-	err := players.Update(query, bson.M{"$set": bson.M{
-		"tier":           tier,
-		"nextlongupdate": nextLongUpdate,
-	}})
-	if err != nil {
-		return No
-	}
-	return Yes
-}
-
-func GetUpdatePlayers() ([]dataFormat.BasicPlayer, int) {
-	if !IsConnected {
-		go Connect()
-		return []dataFormat.BasicPlayer{}, Down
-	}
-
-	defer databaseRecover()
-
-	var results []dataFormat.BasicPlayer
-
-	query := bson.M{
-		"region":         1,
-		"id":             1,
-		"nextupdate":     1,
-		"nextlongupdate": 1,
-	}
-
-	it := players.Find(nil).Select(query).Limit(500).Sort("nextupdate").Iter()
-
-	var player dataFormat.BasicPlayer
-	for it.Next(&player) {
-		if player.NextUpdate.IsZero() {
-			revel.ERROR.Println(`Zero time for next update from GetUpdates.
-This is probably due to corrupt data, updating player...`)
-			revel.ERROR.Println(player)
-			results = append(results, player)
-		} else {
-			if player.NextUpdate.Before(time.Now()) {
-				results = append(results, player)
-			} else {
-				break
-			}
-		}
-	}
-
-	if err := it.Close(); err != nil {
-		if isDisconnected(err.Error()) {
-			go Connect()
-			return []dataFormat.BasicPlayer{}, Down
-		} else {
-			printOut := "GetUpdates Database Close Error: "
-			revel.ERROR.Println(printOut + err.Error())
-			return []dataFormat.BasicPlayer{}, Error
-		}
-	}
-
-	err := it.Err()
-	if err != nil {
-		if isDisconnected(err.Error()) {
-			go Connect()
-			return []dataFormat.BasicPlayer{}, Down
-		} else {
-			printOut := "GetUpdates Database Error: "
-			revel.ERROR.Println(printOut + err.Error())
-			return []dataFormat.BasicPlayer{}, Error
-		}
-	}
-
-	return results, Yes
-}
-
-func GetLongUpdatePlayers() ([]dataFormat.BasicPlayer, int) {
-	if !IsConnected {
-		go Connect()
-		return []dataFormat.BasicPlayer{}, Down
-	}
-
-	defer databaseRecover()
-
-	var results []dataFormat.BasicPlayer
-
-	query := bson.M{
-		"region":         1,
-		"id":             1,
-		"nextupdate":     1,
-		"nextlongupdate": 1,
-	}
-
-	it := players.Find(nil).Select(query).Limit(500).Sort("nextlongupdate").Iter()
-
-	var player dataFormat.BasicPlayer
-	for it.Next(&player) {
-		if player.NextLongUpdate.IsZero() {
-			revel.ERROR.Println(`Zero time for next update from GetLongUpdates.
-This is probably due to corrupt data, updating player...`)
-			revel.ERROR.Println(player)
-			results = append(results, player)
-		} else {
-			if player.NextLongUpdate.Before(time.Now()) {
-				results = append(results, player)
-			} else {
-				break
-			}
-		}
-	}
-
-	if err := it.Close(); err != nil {
-		if isDisconnected(err.Error()) {
-			go Connect()
-			return []dataFormat.BasicPlayer{}, Down
-		} else {
-			printOut := "GetLongUpdates Database Close Error: "
-			revel.ERROR.Println(printOut + err.Error())
-			return []dataFormat.BasicPlayer{}, Error
-		}
-	}
-
-	err := it.Err()
-	if err != nil {
-		if isDisconnected(err.Error()) {
-			go Connect()
-			return []dataFormat.BasicPlayer{}, Down
-		} else {
-			printOut := "GetLongUpdates Database Error: "
-			revel.ERROR.Println(printOut + err.Error())
-			return []dataFormat.BasicPlayer{}, Error
-		}
-	}
-
-	return results, Yes
+	return nil
 }

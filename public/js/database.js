@@ -157,8 +157,8 @@ var loadPlayersDatabase = function(database) {
 		}
 
 		for (var i = 0; i < parsedDatabase.Players.length; i++) {
-			var name = parsedDatabase.Players[i].Name
-			var region = parsedDatabase.Players[i].Region
+			var name = parsedDatabase.Players[i].summonerName
+			var region = parsedDatabase.Players[i].region
 			if (name in regionsDatabase) {
 				regionsDatabase[name].push(region)
 			} else {

@@ -39,6 +39,8 @@ func (c View) Robots() revel.Result {
 }
 
 func (c View) Request(region, name string) revel.Result {
+	region = strings.ToLower(region)
+
 	if !(region == "na" || region == "euw" || region == "eune" ||
 		region == "lan" || region == "las" || region == "oce" ||
 		region == "br" || region == "ru" || region == "kr" ||
@@ -47,22 +49,25 @@ func (c View) Request(region, name string) revel.Result {
 		return c.Redirect(View.Index)
 	}
 
-	region = strings.ToLower(region)
-
-	resolvedName, player, new, err := query.GetStats(name, region)
+	player, new, err := query.GetStats(name, region, false)
 	if err != nil {
-		if err.Error() == "database error" {
+		if err == query.ErrDatabaseError {
 			return c.RenderTemplate("errors/database.html")
-		} else if err.Error() == "database down" {
+		} else if err == query.ErrDatabaseDisconnected {
 			return c.RenderTemplate("errors/down.html")
-		} else if err.Error() == "Not Found" {
+		} else if err == query.ErrNotFound {
 			c.Flash.Error("Sorry, that summoner could not be found!")
 			return c.Redirect(View.Index)
-		} else {
+		} else if err == query.ErrAPIError {
 			c.Flash.Error("Could not connect to Riot Games' servers! Try again later.")
+			return c.Redirect(View.Index)
+		} else {
+			c.Flash.Error("An unknown error has occured, try again in a few seconds.")
 			return c.Redirect(View.Index)
 		}
 	}
+
+	resolvedName := player.SummonerName
 
 	if strings.Trim(resolvedName, " ") != strings.Trim(name, " ") {
 		return c.Redirect("/" + region + "/" + strings.Trim(resolvedName, " "))
