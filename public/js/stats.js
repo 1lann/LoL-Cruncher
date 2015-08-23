@@ -172,7 +172,6 @@ var getListChampions = function(date, queue) {
 	for (var i = 0; i < playerData.basic.length; i++) {
 		var basicData = playerData.basic[i]
 		if (basicData.q == queue && basicData.p == date) {
-			console.log(basicData.c)
 			championMap[basicData.c] = true
 		}
 	}
