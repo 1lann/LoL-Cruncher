@@ -70,7 +70,7 @@ func GetSummonerData(name string, region string) (dataFormat.PlayerData,
 
 	name = dataFormat.NormalizeName(name)
 	c, err := r.Table("players").
-		GetAllByIndex("nr", []string{name, region}).
+		GetAllByIndex("nr", []string{name, region}).AtIndex(0).
 		Merge(func(row r.Term) interface{} {
 		return map[string]interface{}{
 			"detailed": r.DB("cruncher").Table("detailed").
