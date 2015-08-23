@@ -21,11 +21,6 @@ import (
 	"time"
 )
 
-type SideStats struct {
-	Wins   int
-	Losses int
-}
-
 type DetailedNumberOf struct {
 	InternalPlayerId string `gorethink:"ip" json:"-"`
 	TimePeriod       string `gorethink:"p" json:"p"`
@@ -49,11 +44,11 @@ type DetailedNumberOf struct {
 	Blue           struct {
 		Wins   int `gorethink:"w" json:"w"`
 		Losses int `gorethink:"l" json:"l"`
-	} `gorethink:"b"`
+	} `gorethink:"b" json:"b"`
 	Red struct {
 		Wins   int `gorethink:"w" json:"w"`
 		Losses int `gorethink:"l" json:"l"`
-	} `gorethink:"r"`
+	} `gorethink:"r" json:"r"`
 }
 
 type BasicNumberOf struct {
@@ -82,19 +77,20 @@ type Player struct {
 	InternalId     string    `gorethink:"id,omitempty" json:"-"`
 	SummonerName   string    `gorethink:"sn" json:"summonerName"`
 	NormalizedName string    `gorethink:"nn" json:"-"`
-	RecordStart    string    `gorethink:"rs" json:"-"` // Date of first ever game recorded
+	RecordStart    time.Time `gorethink:"rs" json:"-"` // Date of first ever game recorded
 	NextUpdate     time.Time `gorethink:"nu" json:"-"`
 	NextLongUpdate time.Time `gorethink:"nl" json:"-"`
 	ProcessedGames []string  `gorethink:"p" json:"-"`
 }
 
 type PlayerData struct {
-	Detailed       []DetailedNumberOf `gorethink:"detailed" json:"detailed"`
-	Basic          []BasicNumberOf    `gorethink:"basic" json:"basic"`
-	SummonerName   string             `gorethink:"sn" json:"summonerName"`
-	Region         string             `gorethink:"r" json:"r"`
-	RecordStart    string             `gorethink:"rs" json:"rs"`
-	ProcessedGames []string           `gorethink:"p" json:"-"`
+	Detailed          []DetailedNumberOf `gorethink:"detailed" json:"detailed"`
+	Basic             []BasicNumberOf    `gorethink:"basic" json:"basic"`
+	SummonerName      string             `gorethink:"sn" json:"summonerName"`
+	Region            string             `gorethink:"r" json:"r"`
+	RecordStart       time.Time          `gorethink:"rs" json:"-"`
+	RecordStartString string             `gorethink:"-" json:"rs"`
+	ProcessedGames    []string           `gorethink:"p" json:"-"`
 }
 
 type Champion struct {

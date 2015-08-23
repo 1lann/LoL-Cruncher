@@ -83,8 +83,8 @@ func Connect() {
 			Address:  databaseIp,
 			Database: "cruncher",
 			AuthKey:  databasePassword,
-			MaxIdle:  100,
-			MaxOpen:  100,
+			MaxIdle:  10,
+			MaxOpen:  10,
 		})
 		if err != nil {
 			IsConnected = false

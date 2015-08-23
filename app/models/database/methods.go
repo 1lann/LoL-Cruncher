@@ -21,6 +21,7 @@ import (
 	"errors"
 	// "fmt"
 	r "github.com/dancannon/gorethink"
+	"github.com/revel/revel"
 	"time"
 )
 
@@ -38,7 +39,8 @@ func GetBrowserPlayers() ([]dataFormat.Player, error) {
 		return []dataFormat.Player{}, ErrDisconnected
 	}
 
-	c, err := r.Table("players").Pluck("sn", "r").Run(activeSession)
+	c, err := r.Table("players").OrderBy(r.OrderByOpts{"nn"}).
+		Pluck("sn", "r").Run(activeSession)
 	if isDisconnected(err) {
 		return []dataFormat.Player{}, ErrDisconnected
 	} else if err != nil {
@@ -204,6 +206,24 @@ func AddToBasicPlayer(details dataFormat.BasicNumberOf) error {
 	return nil
 }
 
+func DeletePlayer(player dataFormat.Player) error {
+	if !IsConnected {
+		go Connect()
+		return ErrDisconnected
+	}
+
+	_, err := r.Table("players").GetAllByIndex("pi", player.SummonerId).
+		Filter(map[string]string{"r": player.Region}).Delete().
+		RunWrite(activeSession)
+	if err != nil {
+		return err
+	}
+
+	LastPlayerUpdate = time.Now()
+
+	return nil
+}
+
 func CreatePlayer(player dataFormat.Player) (string, error) {
 	if !IsConnected {
 		go Connect()
@@ -212,7 +232,7 @@ func CreatePlayer(player dataFormat.Player) (string, error) {
 
 	// Check if player exists already
 	c, err := r.Table("players").GetAllByIndex("pi", player.SummonerId).
-		Filter(map[string]string{"region": player.Region}).Field("id").
+		Filter(map[string]string{"r": player.Region}).Field("id").
 		Run(activeSession)
 
 	if isDisconnected(err) {
@@ -224,11 +244,14 @@ func CreatePlayer(player dataFormat.Player) (string, error) {
 	internalId := ""
 	err = c.One(&internalId)
 	c.Close()
-	if isDisconnected(err) {
-		return "", ErrDisconnected
-	} else if err != r.ErrEmptyResult {
+
+	LastPlayerUpdate = time.Now()
+
+	if err == nil {
 		// Update new summoner name
-		changes, err := r.Table("players").Get(internalId).Update(
+		revel.WARN.Println("database: updating player summoner name for " +
+			internalId)
+		_, err := r.Table("players").Get(internalId).Update(
 			map[string]string{
 				"sn": player.SummonerName,
 				"nn": player.NormalizedName,
@@ -237,14 +260,14 @@ func CreatePlayer(player dataFormat.Player) (string, error) {
 			return "", ErrDisconnected
 		} else if err != nil {
 			return "", err
-		} else if changes.Updated == 0 {
-			return "", ErrInsertDiscrepancy
 		}
 
 		return internalId, nil
+	} else if isDisconnected(err) {
+		return "", ErrDisconnected
+	} else if err != r.ErrEmptyResult {
+		return "", err
 	}
-
-	// Get the first object
 
 	changes, err := r.Table("players").Insert(player).RunWrite(activeSession)
 	if isDisconnected(err) {
@@ -252,8 +275,6 @@ func CreatePlayer(player dataFormat.Player) (string, error) {
 	} else if err != nil {
 		return "", err
 	}
-
-	// changes.
 
 	if len(changes.GeneratedKeys) == 0 {
 		return "", errors.New("database: missing generated keys")

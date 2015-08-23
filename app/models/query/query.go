@@ -51,6 +51,13 @@ func GetStats(name string, region string, isNew bool) (dataFormat.PlayerData,
 		return dataFormat.PlayerData{}, isNew, ErrDatabaseError
 	}
 
+	if isNew {
+		errorMessage := "query: missing player in database for " + name +
+			" on " + region
+		revel.ERROR.Println(errorMessage)
+		return dataFormat.PlayerData{}, isNew, errors.New(errorMessage)
+	}
+
 	id, resolvedName, err := riotapi.ResolveSummonerId(name, region)
 	if err == riotapi.ErrNotFound {
 		return dataFormat.PlayerData{}, isNew, ErrNotFound
@@ -64,13 +71,11 @@ func GetStats(name string, region string, isNew bool) (dataFormat.PlayerData,
 		SummonerId:     id,
 		SummonerName:   resolvedName,
 		NormalizedName: dataFormat.NormalizeName(resolvedName),
-		RecordStart:    "",
 		NextUpdate:     time.Now(),
 		NextLongUpdate: time.Now(),
-		ProcessedGames: []string{},
 	}
 
-	_, err = database.CreatePlayer(newPlayer)
+	newPlayer.InternalId, err = database.CreatePlayer(newPlayer)
 	if err == ErrDatabaseDisconnected {
 		return dataFormat.PlayerData{}, isNew, err
 	} else if err != nil {
@@ -81,6 +86,7 @@ func GetStats(name string, region string, isNew bool) (dataFormat.PlayerData,
 	err = UpdatePlayer(newPlayer)
 	if err != nil {
 		revel.ERROR.Println("query: error updating player in database:", err)
+		_ = database.DeletePlayer(newPlayer)
 		return dataFormat.PlayerData{}, isNew, err
 	}
 
@@ -88,22 +94,30 @@ func GetStats(name string, region string, isNew bool) (dataFormat.PlayerData,
 }
 
 func UpdatePlayer(player dataFormat.Player) error {
+	games, err := riotapi.GetRecentGames(player.SummonerId, player.Region)
+	if err != nil {
+		return err
+	}
+
+	earliestDate := time.Now()
+	for _, game := range games {
+		if game.Date.Before(earliestDate) {
+			earliestDate = game.Date
+		}
+	}
+
 	tier, err := riotapi.GetTier(player.SummonerId, player.Region)
 	if err != nil {
 		return err
 	}
 
-	tierData := struct {
+	newData := struct {
 		Tier           string    `gorethink:"t"`
 		NextLongUpdate time.Time `gorethink:"nl"`
-	}{tier, time.Now().Add(time.Hour * 168)}
+		RecordStart    time.Time `gorethink:"rs"`
+	}{tier, time.Now().Add(time.Hour * 168), earliestDate}
 
-	if err = database.UpdatePlayerInformation(player, tierData); err != nil {
-		return err
-	}
-
-	games, err := riotapi.GetRecentGames(player.SummonerId, player.Region)
-	if err != nil {
+	if err = database.UpdatePlayerInformation(player, newData); err != nil {
 		return err
 	}
 

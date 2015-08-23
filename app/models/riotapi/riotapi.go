@@ -278,7 +278,7 @@ func GetTier(id string, region string) (string, error) {
 	leagueURL := constructLeagueURL(id, region)
 	contents, err := requestRiotAPI(leagueURL)
 	if err != nil {
-		if err.Error() == "Not Found" {
+		if err == ErrNotFound {
 			return "UNRANKED", nil
 		} else {
 			return "", err

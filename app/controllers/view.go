@@ -17,6 +17,7 @@
 package controllers
 
 import (
+	"cruncher/app/models/database"
 	"cruncher/app/models/query"
 	"github.com/revel/revel"
 	"strings"
@@ -27,6 +28,9 @@ type View struct {
 }
 
 func (c View) Index() revel.Result {
+	if !database.IsConnected {
+		return c.RenderTemplate("errors/down.html")
+	}
 	return c.Render()
 }
 
@@ -50,6 +54,7 @@ func (c View) Request(region, name string) revel.Result {
 	}
 
 	player, new, err := query.GetStats(name, region, false)
+
 	if err != nil {
 		if err == query.ErrDatabaseError {
 			return c.RenderTemplate("errors/database.html")
@@ -62,7 +67,7 @@ func (c View) Request(region, name string) revel.Result {
 			c.Flash.Error("Could not connect to Riot Games' servers! Try again later.")
 			return c.Redirect(View.Index)
 		} else {
-			c.Flash.Error("An unknown error has occured, try again in a few seconds.")
+			c.Flash.Error("An unknown error has occured, please try again in a few seconds.")
 			return c.Redirect(View.Index)
 		}
 	}
@@ -73,10 +78,14 @@ func (c View) Request(region, name string) revel.Result {
 		return c.Redirect("/" + region + "/" + strings.Trim(resolvedName, " "))
 	}
 
+	player.RecordStartString = player.RecordStart.Format("2 January 2006")
+
 	c.RenderArgs["new"] = new
 	c.RenderArgs["player"] = player
 	c.RenderArgs["name"] = resolvedName
 	c.RenderArgs["titleName"] = resolvedName + " - LoL Cruncher"
-	c.RenderArgs["description"] = "View " + resolvedName + "'s statistics for all queues (since " + player.RecordStart + ")"
+	c.RenderArgs["description"] = "View " + resolvedName +
+		"'s statistics for all queues (since " +
+		player.RecordStart.Format("2 January 2006") + ")"
 	return c.Render()
 }

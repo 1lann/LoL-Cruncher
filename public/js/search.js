@@ -177,9 +177,7 @@ var binarySearch = function(query, start, end) {
 	var test = playersDatabase[center];
 	var normalized = test.toLowerCase().replace(/ /g, "");
 	var substr = normalized.substring(0, query.length);
-	if (normalized == center) {
-		return floodResults(query, center)
-	} else if (substr == query) {
+	if (substr == query) {
 		return reverseAndFlood(center, query)
 	} else if (substr > query) {
 		return binarySearch(query, start, center - 1);
