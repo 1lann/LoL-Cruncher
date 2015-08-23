@@ -12,9 +12,13 @@ For example you would add this line somewhere near the top of the file (Obviousl
 
 `riotapikey = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxx`
 
-You'll also need to specify the MongoDB IP. Ex:
+You'll also need to specify the RethinkDB IP and port. Ex:
 
-`database.ip = 127.0.0.1`
+`database.ip = 127.0.0.1:28015`
+
+You can specify the database password like so:
+
+`database.password = your_password_here`
 
 Then, run `revel run cruncher` and navigate your browser to http://127.0.0.1:9000
 

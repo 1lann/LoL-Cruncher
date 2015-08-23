@@ -17,20 +17,21 @@
 
 // jscs: disable
 
-var startDate = "since " + playerData.RecordStart;
-var selectedDate = startDate;
-var selectedFilter = "All";
-var selectedQueue = "all queues";
-var selectedDisplay = "cards";
+var startDate = "since " + playerData.rs
+var selectedDate = startDate
+var selectedFilter = "All"
+var selectedQueue = "all queues"
+var selectedDisplay = "cards"
 
-var templateMonths = [];
-var templateQueues = [];
-var monthResolver = {};
+var templateMonths = []
+var templateQueues = []
+var monthResolver = {}
 
-var championsSearchIndex = {};
+var championsSearchIndex = {}
 var championFilter = ""
 
-var selectedCollection;
+var queueSelection = "all"
+var dateSelection = "all"
 
 var monthsKeys = {
 	"1": "January",
@@ -47,7 +48,7 @@ var monthsKeys = {
 	"12": "December",
 }
 
-var dateRegex = /(\d+)\s(\d+)/;
+var dateRegex = /(\d+)\s(\d+)/
 
 var getStringedDate = function(date) {
 	var resp = date.match(dateRegex)
@@ -55,487 +56,532 @@ var getStringedDate = function(date) {
 }
 
 var loadMonths = function() {
-	var months = Object.keys(playerData.AllQueues.MonthlyStats)
-	months.sort();
+	var monthMap = {}
+	for (var i = 0; i < playerData.detailed.length; i++) {
+		var period = playerData.detailed[i].p
+		if (!monthMap[period] && period != "all") {
+			monthMap[period] = true
+		}
+	}
+
+	var months = Object.keys(monthMap)
+	months.sort()
+
 	for (var i = 0; i < months.length; i++) {
-		var monthKey = "for " + getStringedDate(months[i]);
-		monthResolver[monthKey] = months[i];
-		templateMonths.push({text: monthKey});
+		var monthKey = "for " + getStringedDate(months[i])
+		monthResolver[monthKey] = months[i]
+		templateMonths.push({text: monthKey})
 	}
 }
 
 var loadQueues = function() {
-	var queues = Object.keys(playerData.QueueStats)
-	for (var i = 0; i < queues.length; i++) {
-		templateQueues.push({name: queues[i]})
+	var queueMap = {}
+	for (var i = 0; i < playerData.detailed.length; i++) {
+		var queue = playerData.detailed[i].q
+		if (!queueMap[queue] && queue != "all") {
+			queueMap[queue] = true
+			templateQueues.push({name: queue})
+		}
 	}
 }
 
 var selectCollection = function() {
-	var queueSelection;
-
 	if (selectedQueue == "all queues") {
-		queueSelection = playerData.AllQueues;
+		queueSelection = "all"
 	} else {
-		queueSelection = playerData.QueueStats[selectedQueue];
+		queueSelection = selectedQueue
 	}
 
 	if (selectedDate == startDate) {
-		selectedCollection = queueSelection.AllMonths
+		dateSelection = "all"
 	} else {
-		selectedCollection =
-			queueSelection.MonthlyStats[monthResolver[selectedDate]]
+		dateSelection = monthResolver[selectedDate]
 	}
 }
 
 var getHumanTime = function(seconds) {
-	var numdays = Math.floor(seconds / 86400);
-	var numhours = Math.floor((seconds % 86400) / 3600);
-	var numminutes = Math.floor(((seconds % 86400) % 3600) / 60);
-	var construct = "";
+	var numdays = Math.floor(seconds / 86400)
+	var numhours = Math.floor((seconds % 86400) / 3600)
+	var numminutes = Math.floor(((seconds % 86400) % 3600) / 60)
+	var construct = ""
 
 	if (numdays == 1) {
-		construct = "1 day";
+		construct = "1 day"
 	} else if (numdays > 1) {
-		construct = numdays + " days";
+		construct = numdays + " days"
 	}
 
 	if (numhours == 1) {
 		if (construct != "") {
-			construct = construct + ", ";
+			construct = construct + ", "
 		}
-		construct = construct + "1 hour";
+		construct = construct + "1 hour"
 	} else if (numhours > 1) {
 		if (construct != "") {
-			construct = construct + ", ";
+			construct = construct + ", "
 		}
-		construct = construct + numhours + " hours";
+		construct = construct + numhours + " hours"
 	}
 
 	if (construct != "") {
-		construct = construct + ", and ";
+		construct = construct + ", and "
 	}
 	if (numminutes == 1) {
-		construct = construct + "1 minute";
+		construct = construct + "1 minute"
 	} else {
-		construct = construct + numminutes + " minutes";
+		construct = construct + numminutes + " minutes"
 	}
-	return construct;
+	return construct
 }
 
 var getGoldAmount = function(gold) {
 	if (gold > 999999) {
-		var prefix = Math.round(gold/10000) / 100;
-		return prefix + "m"
+		var prefix = Math.round(gold/10000) / 100
+		return prefix + "M"
 	} else {
-		var prefix = Math.round(gold/100) / 10;
+		var prefix = Math.round(gold/100) / 10
 		return prefix + "k"
 	}
 }
 
 var oneDecRound = function(num) {
-	return (Math.round(num * 10) / 10).toString();
+	return (Math.round(num * 10) / 10).toString()
+}
+
+var getDetailedCollection = function(date, queue) {
+	for (var i = 0; i < playerData.detailed.length; i++) {
+		var currentDetailed = playerData.detailed[i]
+		if (currentDetailed.p == date && currentDetailed.q == queue) {
+			return currentDetailed
+		}
+	}
+}
+
+var getBasicCollection = function(date, queue, champion) {
+	for (var i = 0; i < playerData.basic.length; i++) {
+		var currentChampion = playerData.basic[i]
+		if (currentChampion.p == date && currentChampion.q == queue &&
+			currentChampion.c == champion) {
+			return currentChampion
+		}
+	}
+}
+
+var getListChampions = function(date, queue) {
+	var championMap = {}
+	for (var i = 0; i < playerData.basic.length; i++) {
+		var basicData = playerData.basic[i]
+		if (basicData.q == queue && basicData.p == date) {
+			console.log(basicData.c)
+			championMap[basicData.c] = true
+		}
+	}
+
+	return Object.keys(championMap)
 }
 
 // You may want to collapse these functions in your IDE/Text Editor
 var generateGeneralStats = function() {
-	var outputStats = [];
-	var statsSource = selectedCollection.All
+	var outputStats = []
+	var statsSource = getDetailedCollection(dateSelection, queueSelection)
 
 	var spentPlaying = timePlayingTemplate({
-		time: getHumanTime(statsSource.TimePlayed)
-	});
+		time: getHumanTime(statsSource.t)
+	})
 
 	if (selectedFilter == "All") {
 		outputStats.push({
 			label: "Games played",
-			data: (statsSource.Wins + statsSource.Losses).toString(),
-		});
+			data: (statsSource.w + statsSource.l).toString(),
+		})
 		outputStats.push({
 			label: "Games won",
-			data: statsSource.Wins.toString(),
-		});
+			data: statsSource.w.toString(),
+		})
 		outputStats.push({
 			label: "Games lost",
-			data: statsSource.Losses.toString(),
-		});
+			data: statsSource.l.toString(),
+		})
 		outputStats.push({
 			label: "Games played on red",
-			data: (statsSource.Red.Wins + statsSource.Red.Losses).toString(),
-		});
+			data: (statsSource.r.w + statsSource.r.l).toString(),
+		})
 		outputStats.push({
 			label: "Games played on blue",
-			data: (statsSource.Blue.Wins + statsSource.Blue.Losses).toString(),
-		});
+			data: (statsSource.b.w + statsSource.b.l).toString(),
+		})
 		outputStats.push({
 			label: "Minions killed",
-			data: statsSource.MinionsKilled.toString(),
-		});
+			data: statsSource.m.toString(),
+		})
 		outputStats.push({
 			label: "Jungle monsters killed",
-			data: statsSource.MonstersKilled.toString(),
-		});
+			data: statsSource.n.toString(),
+		})
 		outputStats.push({
 			label: "Gold earned",
-			data: getGoldAmount(statsSource.GoldEarned),
-		});
+			data: getGoldAmount(statsSource.g),
+		})
 		outputStats.push({
 			label: "Wards placed",
-			data: statsSource.WardsPlaced.toString(),
-		});
+			data: statsSource.wp.toString(),
+		})
 		outputStats.push({
 			label: "Wards killed",
-			data: statsSource.WardsKilled.toString(),
-		});
+			data: statsSource.wk.toString(),
+		})
 		outputStats.push({
 			label: "Kills",
-			data: statsSource.Kills.toString(),
-		});
+			data: statsSource.k.toString(),
+		})
 		outputStats.push({
 			label: "Deaths",
-			data: statsSource.Deaths.toString(),
-		});
+			data: statsSource.d.toString(),
+		})
 		outputStats.push({
 			label: "Assists",
-			data: statsSource.Assists.toString(),
-		});
+			data: statsSource.a.toString(),
+		})
 		outputStats.push({
 			label: "Double kills",
-			data: statsSource.DoubleKills.toString(),
-		});
+			data: statsSource.dk.toString(),
+		})
 		outputStats.push({
 			label: "Triple kills",
-			data: statsSource.TripleKills.toString(),
-		});
+			data: statsSource.tk.toString(),
+		})
 		outputStats.push({
 			label: "Quadra kills",
-			data: statsSource.QuadraKills.toString(),
-		});
+			data: statsSource.qk.toString(),
+		})
 		outputStats.push({
 			label: "Pentakills",
-			data: statsSource.PentaKills.toString(),
-		});
+			data: statsSource.pk.toString(),
+		})
 	} else if (selectedFilter == "Rates/average") {
-		var numGames = statsSource.Wins + statsSource.Losses;
-		var timePlayed = statsSource.TimePlayed;
+		var numGames = statsSource.w + statsSource.l
+		var timePlayed = statsSource.t
 		outputStats.push({
 			label: "Games played",
 			data: numGames.toString(),
-		});
+		})
 		outputStats.push({
 			label: "Average game time in minutes",
 			data: Math.round(timePlayed/numGames/60),
-		});
+		})
 		if (numGames <= 0) {
 			outputStats.push({
 				label: "Winrate",
 				data: "0%",
-			});
+			})
 		} else {
 			outputStats.push({
 				label: "Winrate",
-				data: Math.round((statsSource.Wins/numGames) * 100) + "%",
-			});
+				data: Math.round((statsSource.w/numGames) * 100) + "%",
+			})
 		}
 
-		var redGames = statsSource.Red.Wins + statsSource.Red.Losses
+		var redGames = statsSource.r.w + statsSource.r.l
 		if (redGames <= 0) {
 			outputStats.push({
 				label: "Red team winrate",
 				data: "0%",
-			});
+			})
 		} else {
 			outputStats.push({
 				label: "Red team winrate",
-				data: Math.round((statsSource.Red.Wins/redGames) * 100) + "%",
-			});
+				data: Math.round((statsSource.r.w/redGames) * 100) + "%",
+			})
 		}
 
-		var blueGames = statsSource.Blue.Wins + statsSource.Blue.Losses
+		var blueGames = statsSource.b.w + statsSource.b.l
 		if (blueGames <= 0) {
 			outputStats.push({
 				label: "Blue team winrate",
 				data: "0%",
-			});
+			})
 		} else {
 			outputStats.push({
 				label: "Blue team winrate",
-				data: Math.round((statsSource.Blue.Wins/blueGames) * 100) + "%",
-			});
+				data: Math.round((statsSource.b.w/blueGames) * 100) + "%",
+			})
 		}
 
 		outputStats.push({
 			label: "Minions killed per 10 minutes",
-			data: oneDecRound(statsSource.MinionsKilled/(timePlayed/600)),
-		});
+			data: oneDecRound(statsSource.m/(timePlayed/600)),
+		})
 		outputStats.push({
 			label: "Jungle monsters killed per 10 minutes",
-			data: oneDecRound(statsSource.MonstersKilled/(timePlayed/600)),
-		});
+			data: oneDecRound(statsSource.n/(timePlayed/600)),
+		})
 		outputStats.push({
 			label: "Gold earned per 10 minutes",
-			data: getGoldAmount(statsSource.GoldEarned/(timePlayed/600)),
-		});
+			data: getGoldAmount(statsSource.g/(timePlayed/600)),
+		})
 		outputStats.push({
 			label: "Wards placed per game",
-			data: oneDecRound(statsSource.WardsPlaced/numGames),
-		});
+			data: oneDecRound(statsSource.wp/numGames),
+		})
 		outputStats.push({
 			label: "Wards killed per game",
-			data: oneDecRound(statsSource.WardsKilled/numGames),
-		});
+			data: oneDecRound(statsSource.wk/numGames),
+		})
 		outputStats.push({
 			label: "Kills per game",
-			data: oneDecRound(statsSource.Kills/numGames),
-		});
+			data: oneDecRound(statsSource.k/numGames),
+		})
 		outputStats.push({
 			label: "Deaths per game",
-			data: oneDecRound(statsSource.Deaths/numGames),
-		});
+			data: oneDecRound(statsSource.d/numGames),
+		})
 		outputStats.push({
 			label: "Assists per game",
-			data: oneDecRound(statsSource.Assists/numGames),
-		});
+			data: oneDecRound(statsSource.a/numGames),
+		})
 	}
 
-	return spentPlaying + statsTemplate({statsRow: outputStats});
+	return spentPlaying + statsTemplate({statsRow: outputStats})
 }
 
 var generateChampionStats = function(championId) {
 	// TODO: Add gold stats
 
-	var outputStats = [];
-	var statsSource = selectedCollection.Champions[championId];
+	var outputStats = []
+	var statsSource = getBasicCollection(dateSelection, queueSelection,
+		championId)
 
 	var spentPlaying = timePlayingTemplate({
-		time: getHumanTime(statsSource.TimePlayed)
-	});
+		time: getHumanTime(statsSource.t)
+	})
 
 	if (selectedFilter == "All") {
 		outputStats.push({
 			label: "Games played",
-			data: (statsSource.Wins + statsSource.Losses).toString(),
-		});
+			data: (statsSource.w + statsSource.l).toString(),
+		})
 		outputStats.push({
 			label: "Games won",
-			data: statsSource.Wins.toString(),
-		});
+			data: statsSource.w.toString(),
+		})
 		outputStats.push({
 			label: "Games lost",
-			data: statsSource.Losses.toString(),
-		});
+			data: statsSource.l.toString(),
+		})
 		outputStats.push({
 			label: "Minions killed",
-			data: statsSource.MinionsKilled.toString(),
-		});
+			data: statsSource.m.toString(),
+		})
 		outputStats.push({
 			label: "Jungle monsters killed",
-			data: statsSource.MonstersKilled.toString(),
-		});
+			data: statsSource.n.toString(),
+		})
 		outputStats.push({
 			label: "Gold earned",
-			data: getGoldAmount(statsSource.GoldEarned),
-		});
+			data: getGoldAmount(statsSource.g),
+		})
 		outputStats.push({
 			label: "Wards placed",
-			data: statsSource.WardsPlaced.toString(),
-		});
+			data: statsSource.wp.toString(),
+		})
 		outputStats.push({
 			label: "Kills",
-			data: statsSource.Kills.toString(),
-		});
+			data: statsSource.k.toString(),
+		})
 		outputStats.push({
 			label: "Deaths",
-			data: statsSource.Deaths.toString(),
-		});
+			data: statsSource.d.toString(),
+		})
 		outputStats.push({
 			label: "Assists",
-			data: statsSource.Assists.toString(),
-		});
+			data: statsSource.a.toString(),
+		})
 	} else if (selectedFilter == "Rates/average") {
-		var numGames = statsSource.Wins + statsSource.Losses;
-		var timePlayed = statsSource.TimePlayed;
+		var numGames = statsSource.w + statsSource.l
+		var timePlayed = statsSource.t
 		outputStats.push({
 			label: "Games played",
 			data: numGames.toString(),
-		});
+		})
 		outputStats.push({
 			label: "Average game time in minutes",
 			data: Math.round(timePlayed/numGames/60),
-		});
+		})
 		if (numGames <= 0) {
 			outputStats.push({
 				label: "Winrate",
 				data: "0%",
-			});
+			})
 		} else {
 			outputStats.push({
 				label: "Winrate",
-				data: Math.round((statsSource.Wins/numGames) * 100) + "%",
-			});
+				data: Math.round((statsSource.w/numGames) * 100) + "%",
+			})
 		}
 		outputStats.push({
 			label: "Minions killed per 10 minutes",
-			data: oneDecRound(statsSource.MinionsKilled/(timePlayed/600)),
-		});
+			data: oneDecRound(statsSource.m/(timePlayed/600)),
+		})
 		outputStats.push({
 			label: "Jungle monsters killed per 10 minutes",
-			data: oneDecRound(statsSource.MonstersKilled/(timePlayed/600)),
-		});
+			data: oneDecRound(statsSource.n/(timePlayed/600)),
+		})
 		outputStats.push({
 			label: "Gold earned per 10 minutes",
-			data: getGoldAmount(statsSource.GoldEarned/(timePlayed/600)),
-		});
+			data: getGoldAmount(statsSource.g/(timePlayed/600)),
+		})
 		outputStats.push({
 			label: "Wards placed per game",
-			data: oneDecRound(statsSource.WardsPlaced/numGames),
-		});
+			data: oneDecRound(statsSource.wp/numGames),
+		})
 		outputStats.push({
 			label: "Kills per game",
-			data: oneDecRound(statsSource.Kills/numGames),
-		});
+			data: oneDecRound(statsSource.k/numGames),
+		})
 		outputStats.push({
 			label: "Deaths per game",
-			data: oneDecRound(statsSource.Deaths/numGames),
-		});
+			data: oneDecRound(statsSource.d/numGames),
+		})
 		outputStats.push({
 			label: "Assists per game",
-			data: oneDecRound(statsSource.Assists/numGames),
-		});
+			data: oneDecRound(statsSource.a/numGames),
+		})
 	}
 
-	return spentPlaying + statsTemplate({statsRow: outputStats});
+	return spentPlaying + statsTemplate({statsRow: outputStats})
 }
 
 var generate
 
 var generateGeneralArea = function() {
-	$(".general-card").empty();
+	$(".general-card").empty()
 
-	var statsArea = generateGeneralStats();
+	var statsArea = generateGeneralStats()
 
 	var generalArea = $(generalCardTemplate({
 		dateFilter: selectedDate + " for " + selectedQueue,
 		stats: statsArea,
 	}))
 
-	$(".general-card").append(generalArea);
+	$(".general-card").append(generalArea)
 }
 
 var updateGeneralArea = function() {
 	// Only call if stats-area exists
 	$(".general-card .stats-area").empty()
-	$(".general-card .stats-area").append(generateGeneralStats());
+	$(".general-card .stats-area").append(generateGeneralStats())
 }
 
 var generateFiltersArea = function() {
-	loadQueues();
-	loadMonths();
+	loadQueues()
+	loadMonths()
 	var filtersArea = $(filtersAreaTemplate({
 		month: templateMonths,
-		start: playerData.RecordStart,
+		start: playerData.rs,
 		queueTypes: templateQueues,
-	}));
+	}))
 
 	filtersArea.find("#general-dropdown").dropdown({
 		onChange: function(value, text) {
-			selectedFilter = text;
-			regenerate();
+			selectedFilter = text
+			regenerate()
 		},
 		on: "hover"
-	});
+	})
 
 	filtersArea.find("#date-dropdown").dropdown({
 		onChange: function(value, text) {
-			selectedDate = text;
-			regenerate();
+			selectedDate = text
+			regenerate()
 		},
 		on: "hover"
-	});
+	})
 
 	filtersArea.find("#queue-dropdown").dropdown({
 		onChange: function(value, text) {
-			selectedQueue = text;
-			regenerate();
+			selectedQueue = text
+			regenerate()
 		},
 		on: "hover"
-	});
+	})
 
 	filtersArea.find("#display-dropdown").dropdown({
 		onChange: function(value, text) {
-			selectedDisplay = text;
-			regenerate();
+			selectedDisplay = text
+			regenerate()
 		},
 		on: "hover"
-	});
+	})
 
-	filtersArea.find(".glyphicon.glyphicon-info-sign").popover();
+	filtersArea.find(".glyphicon.glyphicon-info-sign").popover()
 
-	$(".filters-area").append(filtersArea);
+	$(".filters-area").append(filtersArea)
 }
 
 var indexChampions = function() {
-	var championIds = Object.keys(selectedCollection.Champions);
+	var championIds = getListChampions(dateSelection, queueSelection)
 
 	for (var i = 0; i < championIds.length; i++) {
-		var championId = championIds[i];
-		championsSearchIndex[championsDatabase[championId].name] = championId;
+		var championId = championIds[i]
+		championsSearchIndex[championsDatabase[championId].name] = championId
 	}
 	return
 }
 
 var championSearch = function(query) {
-	var results = []; // In champion ID form plz.
+	var results = [] // In champion ID form plz.
 
 	if (query.trim() == "") {
-		$("#champion-input").val("");
+		$("#champion-input").val("")
 		// Sort by number of games
-		var championIds = Object.keys(selectedCollection.Champions);
+		championIds = getListChampions(dateSelection, queueSelection)
 
 		championIds.sort(function(a, b) {
-			var championA = selectedCollection.Champions[a];
-			var championB = selectedCollection.Champions[b]
-			return (championB.Wins + championB.Losses)
-				- (championA.Wins + championA.Losses);
+			var championA = getBasicCollection(dateSelection,
+			queueSelection, a)
+			var championB = getBasicCollection(dateSelection,
+			queueSelection, b)
+			return (championB.w + championB.l)
+				- (championA.w + championA.l)
 		})
 
-		results = championIds;
+		results = championIds
 	} else {
 		// First get indexOf == 0
 		// Followed by everything else in natrual order.
-		var exact = false;
-		var startsWith = [];
-		var contains = [];
+		var exact = false
+		var startsWith = []
+		var contains = []
 		for (var championName in championsSearchIndex) {
-			var lowerChampionName = championName.toLowerCase();
+			var lowerChampionName = championName.toLowerCase()
 			if (lowerChampionName == query) {
-				exact = championsSearchIndex[championName];
+				exact = championsSearchIndex[championName]
 			} else if (lowerChampionName.indexOf(query) >= 0) {
 				if (lowerChampionName.indexOf(query) == 0) {
-					startsWith.push(championsSearchIndex[championName]);
+					startsWith.push(championsSearchIndex[championName])
 				} else {
-					contains.push(championsSearchIndex[championName]);
+					contains.push(championsSearchIndex[championName])
 				}
 			}
 		}
 
-		results = startsWith.concat(contains);
+		results = startsWith.concat(contains)
 		if (exact) {
-			results.splice(0, 0, exact);
+			results.splice(0, 0, exact)
 		}
 	}
 	if (results.length > 10) {
-		return results.splice(0, 10);
+		return results.splice(0, 10)
 	}
 	return results
 }
 
 var generateChampionCards = function() {
-	$(".champion-cards").empty();
-	$(".more-champions").empty();
+	$(".champion-cards").empty()
+	$(".more-champions").empty()
 
 	var results = championSearch($("#champion-input").val().toLowerCase())
-	var renderInput = [];
+	var renderInput = []
 	for (var i = 0; i < results.length; i++) {
 		var renderArgs = {
 			imageName: championsDatabase[results[i]].image,
@@ -543,7 +589,7 @@ var generateChampionCards = function() {
 			dateFilter: selectedDate + " for " + selectedQueue,
 			stats: generateChampionStats(results[i]),
 		}
-		var championCard = championCardTemplate(renderArgs);
+		var championCard = championCardTemplate(renderArgs)
 
 		if (window.innerWidth <= 991) {
 			$(".champion-cards").append(championCard)
@@ -557,69 +603,78 @@ var generateChampionCards = function() {
 	}
 
 	if (results.length <= 0) {
-		$(".champion-cards").append('<p class="no-champions">No results</p>');
+		$(".champion-cards").append('<p class="no-champions">No results</p>')
 	}
 }
 
 var generateTable = function() {
-	$(".stats-table-container").empty();
+	$(".stats-table-container").empty()
 
-	var stats = [];
-	var tableHeader = "";
-	var tableFooter = "";
+	var stats = []
+	var tableHeader = ""
+	var tableFooter = ""
 
 	if (selectedFilter == "All") {
-		tableHeader = tableAllHeader;
+		tableHeader = tableAllHeader
 
-		for (var championId in selectedCollection.Champions) {
-			var statsSource = selectedCollection.Champions[championId];
+		var championsList = getListChampions(dateSelection, queueSelection)
+
+		for (var i = 0; i < championsList.length; i++) {
+			var championId = championsList[i];
+
+			var statsSource = getBasicCollection(dateSelection, queueSelection,
+				championId)
 
 			var renderArgs = {
 				imageName: championsDatabase[championId].image,
 				championName: championsDatabase[championId].name,
-				games: (statsSource.Wins + statsSource.Losses).toString(),
-				wins: statsSource.Wins.toString(),
-				losses: statsSource.Losses.toString(),
-				minions: statsSource.MinionsKilled.toString(),
-				jungle: statsSource.MonstersKilled.toString(),
-				gold: getGoldAmount(statsSource.GoldEarned),
-				wards: statsSource.WardsPlaced.toString(),
-				kills: statsSource.Kills.toString(),
-				deaths: statsSource.Deaths.toString(),
-				assists: statsSource.Assists.toString()
+				games: (statsSource.w + statsSource.l).toString(),
+				wins: statsSource.w.toString(),
+				losses: statsSource.l.toString(),
+				minions: statsSource.m.toString(),
+				jungle: statsSource.n.toString(),
+				gold: getGoldAmount(statsSource.g),
+				wards: statsSource.wp.toString(),
+				kills: statsSource.k.toString(),
+				deaths: statsSource.d.toString(),
+				assists: statsSource.a.toString()
 			}
 
-			stats.push({stats: tableRowTemplate(renderArgs)});
+			stats.push({stats: tableRowTemplate(renderArgs)})
 		}
 
-		var footerStats = selectedCollection.All;
+		var footerStats = getDetailedCollection(dateSelection, queueSelection)
 
 		var footerArgs = {
-			games: (footerStats.Wins + footerStats.Losses).toString(),
-			wins: footerStats.Wins.toString(),
-			losses: footerStats.Losses.toString(),
-			minions: footerStats.MinionsKilled.toString(),
-			jungle: footerStats.MonstersKilled.toString(),
-			gold: getGoldAmount(footerStats.GoldEarned),
-			wards: footerStats.WardsPlaced.toString(),
-			kills: footerStats.Kills.toString(),
-			deaths: footerStats.Deaths.toString(),
-			assists: footerStats.Assists.toString()
+			games: (footerStats.w + footerStats.l).toString(),
+			wins: footerStats.w.toString(),
+			losses: footerStats.l.toString(),
+			minions: footerStats.m.toString(),
+			jungle: footerStats.n.toString(),
+			gold: getGoldAmount(footerStats.g),
+			wards: footerStats.wp.toString(),
+			kills: footerStats.k.toString(),
+			deaths: footerStats.d.toString(),
+			assists: footerStats.a.toString()
 		}
 
-		tableFooter = tableFooterTemplate(footerArgs);
+		tableFooter = tableFooterTemplate(footerArgs)
 	} else if (selectedFilter == "Rates/average") {
-		tableHeader = tableRatesHeader;
+		tableHeader = tableRatesHeader
+		var championsList = getListChampions(dateSelection, queueSelection)
 
-		for (var championId in selectedCollection.Champions) {
-			var statsSource = selectedCollection.Champions[championId];
+		for (var i = 0; i < championsList.length; i++) {
+			var championId = championsList[i];
 
-			var numGames = statsSource.Wins + statsSource.Losses;
-			var timePlayed = statsSource.TimePlayed;
+			var statsSource = getBasicCollection(dateSelection, queueSelection,
+				championId)
 
-			var winrate = "0%";
+			var numGames = statsSource.w + statsSource.l
+			var timePlayed = statsSource.t
+
+			var winrate = "0%"
 			if (numGames > 0) {
-				winrate = Math.round((statsSource.Wins/numGames) * 100) + "%";
+				winrate = Math.round((statsSource.w/numGames) * 100) + "%"
 			}
 
 			var renderArgs = {
@@ -627,41 +682,41 @@ var generateTable = function() {
 				championName: championsDatabase[championId].name,
 				games: numGames.toString(),
 				wins: winrate,
-				minions: oneDecRound(statsSource.MinionsKilled/(timePlayed/600)),
-				jungle: oneDecRound(statsSource.MonstersKilled/(timePlayed/600)),
-				gold: getGoldAmount(statsSource.GoldEarned/(timePlayed/600)),
-				wards: oneDecRound(statsSource.WardsPlaced/numGames),
-				kills: oneDecRound(statsSource.Kills/numGames),
-				deaths: oneDecRound(statsSource.Deaths/numGames),
-				assists: oneDecRound(statsSource.Assists/numGames)
+				minions: oneDecRound(statsSource.m/(timePlayed/600)),
+				jungle: oneDecRound(statsSource.n/(timePlayed/600)),
+				gold: getGoldAmount(statsSource.g/(timePlayed/600)),
+				wards: oneDecRound(statsSource.wp/numGames),
+				kills: oneDecRound(statsSource.k/numGames),
+				deaths: oneDecRound(statsSource.d/numGames),
+				assists: oneDecRound(statsSource.a/numGames)
 			}
 
-			stats.push({stats: tableRowTemplate(renderArgs)});
+			stats.push({stats: tableRowTemplate(renderArgs)})
 		}
 
-		var footerStats = selectedCollection.All;
+		var footerStats = getDetailedCollection(dateSelection, queueSelection)
 
-		var timePlayed = footerStats.TimePlayed;
-		var numGames = (footerStats.Wins + footerStats.Losses);
+		var timePlayed = footerStats.t
+		var numGames = (footerStats.w + footerStats.l)
 
-		var winrate = "0%";
+		var winrate = "0%"
 		if (numGames > 0) {
-			winrate = Math.round((footerStats.Wins/numGames) * 100) + "%";
+			winrate = Math.round((footerStats.w/numGames) * 100) + "%"
 		}
 
 		var footerArgs = {
 			games: numGames.toString(),
 			wins: winrate,
-			minions: oneDecRound(footerStats.MinionsKilled/(timePlayed/600)),
-			jungle: oneDecRound(footerStats.MonstersKilled/(timePlayed/600)),
-			gold: getGoldAmount(footerStats.GoldEarned/(timePlayed/600)),
-			wards: oneDecRound(footerStats.WardsPlaced/numGames),
-			kills: oneDecRound(footerStats.Kills/numGames),
-			deaths: oneDecRound(footerStats.Deaths/numGames),
-			assists: oneDecRound(footerStats.Assists/numGames)
+			minions: oneDecRound(footerStats.m/(timePlayed/600)),
+			jungle: oneDecRound(footerStats.n/(timePlayed/600)),
+			gold: getGoldAmount(footerStats.g/(timePlayed/600)),
+			wards: oneDecRound(footerStats.wp/numGames),
+			kills: oneDecRound(footerStats.k/numGames),
+			deaths: oneDecRound(footerStats.d/numGames),
+			assists: oneDecRound(footerStats.a/numGames)
 		}
 
-		tableFooter = tableFooterTemplate(footerArgs);
+		tableFooter = tableFooterTemplate(footerArgs)
 	}
 
 	var renderArgs = {
@@ -670,14 +725,14 @@ var generateTable = function() {
 		tableFooter: tableFooter
 	}
 
-	var tableElement = $(tableStatsTemplate(renderArgs));
+	var tableElement = $(tableStatsTemplate(renderArgs))
 
-	$(".stats-table-container").append(tableElement);
+	$(".stats-table-container").append(tableElement)
 	$(".stats-table-container").scroll(function() {
-		$(window).trigger("resize.stickyTableHeaders");
+		$(window).trigger("resize.stickyTableHeaders")
 	})
 
-	tableElement.stickyTableHeaders();
+	tableElement.stickyTableHeaders()
 
 	if (selectedFilter == "All") {
 		tableElement.tablesorter({
@@ -690,7 +745,7 @@ var generateTable = function() {
 					sorter: "gold"
 				}
 			}
-		});
+		})
 	} else if (selectedFilter == "Rates/average") {
 		tableElement.tablesorter({
 			sortList: [[2, 1]],
@@ -702,45 +757,55 @@ var generateTable = function() {
 					sorter: "gold"
 				}
 			}
-		});
+		})
 	}
 }
 
 var regenerate = function() {
-	selectCollection();
+	selectCollection()
+
+	var selection = getDetailedCollection(dateSelection, queueSelection)
+	if (!selection) {
+		$("#cards-area").hide()
+		$("#table-area").hide()
+		$("#warning-area").show()
+		return
+	} else {
+		$("#warning-area").hide()
+	}
 
 	if (selectedDisplay == "cards") {
-		$("#table-area").hide();
-		$("#cards-area").show();
-		indexChampions();
-		generateGeneralArea();
-		generateChampionCards();
+		$("#table-area").hide()
+		$("#cards-area").show()
+		indexChampions()
+		generateGeneralArea()
+		generateChampionCards()
 	} else {
-		$("#cards-area").hide();
-		$("#table-area").show();
+		$("#cards-area").hide()
+		$("#table-area").show()
 
-		generateTable();
+		generateTable()
 	}
 }
 
 var onDatabaseLoaded = function() {
 	console.log("Database loaded, loading player data...")
 
-	generateFiltersArea();
-	selectCollection();
+	generateFiltersArea()
+	selectCollection()
 
-	regenerate();
+	regenerate()
 
 	$("#champion-input").on("input", function() {
-		generateChampionCards();
+		generateChampionCards()
 	})
 
 	$(".profile").append(profileTemplate({
 		username: summonerName,
 		imageName: summonerName.replace(" ", ""),
-		region: regionCodes[playerData.Region],
-		regionCode: playerData.Region.toUpperCase(),
-	}));
+		region: regionCodes[playerData.r],
+		regionCode: playerData.r.toUpperCase(),
+	}))
 }
 
 $.tablesorter.addParser({
@@ -748,19 +813,19 @@ $.tablesorter.addParser({
 	id: "gold",
 	is: function(s) {
 		// return false so this parser is not auto detected
-		return false;
+		return false
 	},
 	format: function(s) {
 		// format your data for normalization
 		if (s.indexOf("k") > 0) {
-			return Math.round(parseFloat(s) * 1000);
+			return Math.round(parseFloat(s) * 1000)
 		} else {
 			return Math.round(parseFloat(s) * 1000000)
 		}
 	},
 	// set type, either numeric or text
 	type: "numeric"
-});
+})
 
-$.tablesorter.defaults.sortInitialOrder = "desc";
+$.tablesorter.defaults.sortInitialOrder = "desc"
 

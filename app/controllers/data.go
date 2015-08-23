@@ -36,10 +36,10 @@ var cacheResponse string
 
 type playerUpdate struct {
 	Time    int64
-	Players []dataFormat.BrowserPlayer
+	Players []dataFormat.Player
 }
 
-func generateSitemap(players []dataFormat.BrowserPlayer) {
+func generateSitemap(players []dataFormat.Player) {
 	header := `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`
 	footer := `</urlset>`
@@ -48,7 +48,7 @@ func generateSitemap(players []dataFormat.BrowserPlayer) {
 
 	for _, v := range players {
 		region := strings.Replace(url.QueryEscape(v.Region), "+", "%20", -1)
-		name := strings.Replace(url.QueryEscape(v.Name), "+", "%20", -1)
+		name := strings.Replace(url.QueryEscape(v.SummonerName), "+", "%20", -1)
 		output = output + "<url><loc>https://lolcruncher.tk/" +
 			region + "/" + name + "/</loc></url>"
 	}
@@ -58,9 +58,10 @@ func generateSitemap(players []dataFormat.BrowserPlayer) {
 
 func getDatabaseUpdates() string {
 	if database.LastPlayerUpdate.After(lastCacheUpdate) {
-		results, resp := database.GetBrowserPlayers()
-		if resp != database.Yes {
+		results, err := database.GetBrowserPlayers()
+		if err != nil {
 			revel.ERROR.Println("getDatabaseUpdates error!")
+			revel.ERROR.Println(err)
 			return "error"
 		}
 

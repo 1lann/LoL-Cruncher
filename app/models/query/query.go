@@ -1,4 +1,3 @@
-
 // LoL Cruncher - A Historical League of Legends Statistics Tracker
 // Copyright (C) 2015  Jason Chu (1lann) 1lanncontact@gmail.com
 
@@ -18,64 +17,88 @@
 package query
 
 import (
-	"github.com/revel/revel"
-	"cruncher/app/models/dataFormat"
-	"cruncher/app/models/riotapi"
-	"cruncher/app/models/database"
 	"cruncher/app/models/crunch"
-	"time"
+	"cruncher/app/models/dataFormat"
+	"cruncher/app/models/database"
+	"cruncher/app/models/riotapi"
 	"errors"
+	"github.com/revel/revel"
+	// "strings"
+	"time"
 )
 
-// Returns id, resolved summoner name, error message
-func ResolveSummonerId(name string, region string) (string, string, error) {
-	playerId, resolvedName, resp := database.GetSummonerID(name, region)
-	if resp == database.Yes {
-		return playerId, resolvedName, nil
-	} else if resp == database.Down {
-		return "", "", errors.New("database down")
-	} else if resp == database.No {
-		// Get id from Riot Games API
-		playerId, resolvedName, err := riotapi.ResolveSummonerId(name, region)
-		if err != nil {
-			return "", "", err
-		}
+var (
+	ErrDatabaseError        = errors.New("query: database error")
+	ErrDatabaseDisconnected = database.ErrDisconnected
+	ErrAPIError             = errors.New("query: riot api error")
+	ErrNotFound             = riotapi.ErrNotFound
+)
 
-		// Store result on database
-		database.StoreSummonerID(resolvedName, playerId, region)
-
-		return playerId, resolvedName, nil
-	} else {
-		return "", "", errors.New("database error")
+func GetStats(name string, region string, isNew bool) (dataFormat.PlayerData,
+	bool, error) {
+	player, err := database.GetSummonerData(name, region)
+	if err == nil {
+		return player, isNew, nil
 	}
+
+	if err == ErrDatabaseDisconnected {
+		return dataFormat.PlayerData{}, isNew, ErrDatabaseDisconnected
+	}
+
+	if err != database.ErrNoResults {
+		revel.ERROR.Println("query: error getting stats for "+name+
+			" on "+region+":", err)
+		return dataFormat.PlayerData{}, isNew, ErrDatabaseError
+	}
+
+	if isNew {
+		errorMessage := "query: missing player in database for " + name +
+			" on " + region
+		revel.ERROR.Println(errorMessage)
+		return dataFormat.PlayerData{}, isNew, errors.New(errorMessage)
+	}
+
+	id, resolvedName, err := riotapi.ResolveSummonerId(name, region)
+	if err == riotapi.ErrNotFound {
+		return dataFormat.PlayerData{}, isNew, ErrNotFound
+	} else if err != nil {
+		return dataFormat.PlayerData{}, isNew, ErrAPIError
+	}
+
+	newPlayer := dataFormat.Player{
+		Region:         region,
+		Tier:           "UNKNOWN",
+		SummonerId:     id,
+		SummonerName:   resolvedName,
+		NormalizedName: dataFormat.NormalizeName(resolvedName),
+		NextUpdate:     time.Now(),
+		NextLongUpdate: time.Now(),
+	}
+
+	newPlayer.InternalId, err = database.CreatePlayer(newPlayer)
+	if err == ErrDatabaseDisconnected {
+		return dataFormat.PlayerData{}, isNew, err
+	} else if err != nil {
+		revel.ERROR.Println("query: error creating player in database:", err)
+		return dataFormat.PlayerData{}, isNew, ErrDatabaseError
+	}
+
+	err = UpdatePlayer(newPlayer)
+	if err != nil {
+		revel.ERROR.Println("query: error updating player in database:", err)
+		_ = database.DeletePlayer(newPlayer)
+		return dataFormat.PlayerData{}, isNew, err
+	}
+
+	return GetStats(name, region, true)
 }
 
-// Returns id, name, player data, errors
-func RegisterSummoner(name string, region string) (string, string,
-		dataFormat.Player, error) {
-	revel.INFO.Println("Registering new summoner")
-	id, resolvedName, err := ResolveSummonerId(name, region)
+func UpdatePlayer(player dataFormat.Player) error {
+	games, err := riotapi.GetRecentGames(player.SummonerId, player.Region)
 	if err != nil {
-		return "", "", dataFormat.Player{}, err
+		return err
 	}
 
-	tier, err := riotapi.GetTier(id, region)
-	if err != nil {
-		return "", "", dataFormat.Player{}, err
-	}
-
-	var newPlayer dataFormat.Player
-
-	newPlayer.Tier = tier
-	newPlayer.Id = id
-	newPlayer.Region = region
-
-	games, err := riotapi.GetRecentGames(id, region)
-	if err != nil {
-		return "", "", dataFormat.Player{}, err
-	}
-
-	// Get the first game and set RecordStart
 	earliestDate := time.Now()
 	for _, game := range games {
 		if game.Date.Before(earliestDate) {
@@ -83,46 +106,22 @@ func RegisterSummoner(name string, region string) (string, string,
 		}
 	}
 
-	newPlayer.RecordStart = earliestDate.Format("2 January 2006")
-
-	newPlayer = crunch.Crunch(newPlayer, games)
-
-	// Other updates handled by queue
-	// newPlayer.NextUpdate = time.Now().Add(time.Minute)
-	newPlayer.NextLongUpdate = time.Now().Add(time.Hour * 72)
-	newPlayer.NextUpdate = crunch.GetNextUpdate(games)
-
-	revel.INFO.Printf("Next update time for %v in hours: %v", newPlayer.Id,
-		time.Since(newPlayer.NextUpdate).Hours())
-
-	resp := database.StoreSummonerData(newPlayer)
-	if resp == database.Yes {
-		return id, resolvedName, newPlayer, nil
-	} else if resp == database.Down {
-		return "", "", dataFormat.Player{}, errors.New("database down")
-	} else {
-		return "", "", dataFormat.Player{}, errors.New("database error")
-	}
-}
-
-// Returns resolved summoner name, player data, error message
-func GetStats(name string, region string) (string,
-		dataFormat.Player, bool, error) {
-	playerId, resolvedName, err := ResolveSummonerId(name, region)
+	tier, err := riotapi.GetTier(player.SummonerId, player.Region)
 	if err != nil {
-		return "", dataFormat.Player{}, false, err
+		return err
 	}
 
-	playerData, resp := database.GetSummonerData(playerId, region)
-	if resp == database.Yes {
-		return resolvedName, playerData, false, nil
-	} else if resp == database.Down {
-		return "", dataFormat.Player{}, false, errors.New("database down")
-	} else if resp == database.No {
-		// Go kill urself plz
-		_, resolvedName, playerData, err := RegisterSummoner(name, region)
-		return resolvedName, playerData, true, err
-	} else {
-		return "", dataFormat.Player{}, false, errors.New("database error")
+	newData := struct {
+		Tier           string    `gorethink:"t"`
+		NextLongUpdate time.Time `gorethink:"nl"`
+		RecordStart    time.Time `gorethink:"rs"`
+	}{tier, time.Now().Add(time.Hour * 168), earliestDate}
+
+	if err = database.UpdatePlayerInformation(player, newData); err != nil {
+		return err
 	}
+
+	crunch.Crunch(player, games)
+
+	return nil
 }
