@@ -84,6 +84,9 @@ func GetSummonerData(name string, region string) (dataFormat.PlayerData,
 	if isDisconnected(err) {
 		return dataFormat.PlayerData{}, ErrDisconnected
 	} else if err != nil {
+		if strings.Contains(err.Error(), "gorethink: Index out of bounds: 0 in:") {
+			return dataFormat.PlayerData{}, ErrNoResults
+		}
 		return dataFormat.PlayerData{}, err
 	}
 
@@ -94,8 +97,6 @@ func GetSummonerData(name string, region string) (dataFormat.PlayerData,
 	if isDisconnected(err) {
 		return dataFormat.PlayerData{}, ErrDisconnected
 	} else if err == r.ErrEmptyResult {
-		return dataFormat.PlayerData{}, ErrNoResults
-	} else if strings.Contains(err.Error(), "gorethink: Index out of bounds: 0 in:") {
 		return dataFormat.PlayerData{}, ErrNoResults
 	} else if err != nil {
 		return dataFormat.PlayerData{}, err
