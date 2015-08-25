@@ -22,6 +22,7 @@ import (
 	// "fmt"
 	r "github.com/dancannon/gorethink"
 	"github.com/revel/revel"
+	"strings"
 	"time"
 )
 
@@ -93,6 +94,8 @@ func GetSummonerData(name string, region string) (dataFormat.PlayerData,
 	if isDisconnected(err) {
 		return dataFormat.PlayerData{}, ErrDisconnected
 	} else if err == r.ErrEmptyResult {
+		return dataFormat.PlayerData{}, ErrNoResults
+	} else if strings.Contains(err.Error(), "gorethink: Index out of bounds: 0 in:") {
 		return dataFormat.PlayerData{}, ErrNoResults
 	} else if err != nil {
 		return dataFormat.PlayerData{}, err
