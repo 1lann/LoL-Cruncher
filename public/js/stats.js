@@ -167,7 +167,21 @@ var getBasicCollection = function(date, queue, champion) {
 	}
 }
 
+var listChampionsCache = {
+	cached: [],
+	key: ["", ""],
+}
+
 var getListChampions = function(date, queue) {
+	if (date == listChampionsCache.key[0] &&
+			queue == listChampionsCache.key[1]) {
+		var copyList = []
+		for (var i = 0; i < listChampionsCache.cached.length; i++) {
+			copyList[i] = listChampionsCache.cached[i]
+		}
+		return copyList
+	}
+
 	var championMap = {}
 	for (var i = 0; i < playerData.basic.length; i++) {
 		var basicData = playerData.basic[i]
@@ -176,7 +190,10 @@ var getListChampions = function(date, queue) {
 		}
 	}
 
-	return Object.keys(championMap)
+	listChampionsCache.cached = Object.keys(championMap)
+	listChampionsCache.key = [date, queue]
+
+	return getListChampions(date, queue)
 }
 
 // You may want to collapse these functions in your IDE/Text Editor
@@ -533,7 +550,7 @@ var championSearch = function(query) {
 	if (query.trim() == "") {
 		$("#champion-input").val("")
 		// Sort by number of games
-		championIds = getListChampions(dateSelection, queueSelection)
+		var championIds = getListChampions(dateSelection, queueSelection)
 
 		championIds.sort(function(a, b) {
 			var championA = getBasicCollection(dateSelection,
@@ -546,20 +563,26 @@ var championSearch = function(query) {
 
 		results = championIds
 	} else {
-		// First get indexOf == 0
-		// Followed by everything else in natrual order.
+		var validChampions = getListChampions(dateSelection, queueSelection)
+		var validChampionsMap = {}
+		for (var i = 0; i < validChampions.length; i++) {
+			validChampionsMap[validChampions[i]] = true
+		}
+
 		var exact = false
 		var startsWith = []
 		var contains = []
 		for (var championName in championsSearchIndex) {
 			var lowerChampionName = championName.toLowerCase()
-			if (lowerChampionName == query) {
-				exact = championsSearchIndex[championName]
-			} else if (lowerChampionName.indexOf(query) >= 0) {
-				if (lowerChampionName.indexOf(query) == 0) {
-					startsWith.push(championsSearchIndex[championName])
-				} else {
-					contains.push(championsSearchIndex[championName])
+			if (validChampionsMap[championsSearchIndex[championName]]) {
+				if (lowerChampionName == query) {
+					exact = championsSearchIndex[championName]
+				} else if (lowerChampionName.indexOf(query) >= 0) {
+					if (lowerChampionName.indexOf(query) == 0) {
+						startsWith.push(championsSearchIndex[championName])
+					} else {
+						contains.push(championsSearchIndex[championName])
+					}
 				}
 			}
 		}
@@ -569,6 +592,7 @@ var championSearch = function(query) {
 			results.splice(0, 0, exact)
 		}
 	}
+
 	if (results.length > 10) {
 		return results.splice(0, 10)
 	}
@@ -581,6 +605,7 @@ var generateChampionCards = function() {
 
 	var results = championSearch($("#champion-input").val().toLowerCase())
 	var renderInput = []
+
 	for (var i = 0; i < results.length; i++) {
 		var renderArgs = {
 			imageName: championsDatabase[results[i]].image,
