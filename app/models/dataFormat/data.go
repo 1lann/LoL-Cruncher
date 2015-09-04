@@ -70,7 +70,6 @@ type BasicNumberOf struct {
 }
 
 type Player struct {
-	// nr for normalized name region (internally)
 	Region         string    `gorethink:"r" json:"region"`
 	Tier           string    `gorethink:"t" json:"-"`
 	SummonerId     string    `gorethink:"pi" json:"-"`
