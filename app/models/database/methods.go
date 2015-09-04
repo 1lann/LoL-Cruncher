@@ -84,7 +84,8 @@ func GetSummonerData(name string, region string) (dataFormat.PlayerData,
 				row.Field("id"),
 				r.MaxVal,
 				r.MaxVal,
-			}, r.BetweenOpts{Index: "ippq"}).CoerceTo("array"),
+			}, r.BetweenOpts{Index: "ippq"}).Without("id", "ip").
+				CoerceTo("array"),
 			"basic": r.DB("cruncher").Table("basic").
 				Between([]interface{}{
 				row.Field("id"),
@@ -96,7 +97,8 @@ func GetSummonerData(name string, region string) (dataFormat.PlayerData,
 				r.MaxVal,
 				r.MaxVal,
 				r.MaxVal,
-			}, r.BetweenOpts{Index: "ippqc"}).CoerceTo("array"),
+			}, r.BetweenOpts{Index: "ippqc"}).Without("id", "ip").
+				CoerceTo("array"),
 		}
 	}).Run(activeSession)
 
