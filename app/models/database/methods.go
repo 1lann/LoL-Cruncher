@@ -75,9 +75,27 @@ func GetSummonerData(name string, region string) (dataFormat.PlayerData,
 		Merge(func(row r.Term) interface{} {
 		return map[string]interface{}{
 			"detailed": r.DB("cruncher").Table("detailed").
-				GetAllByIndex("ip", row.Field("id")).CoerceTo("array"),
+				Between([]interface{}{
+				row.Field("id"),
+				r.MinVal,
+				r.MinVal,
+			}, []interface{}{
+				row.Field("id"),
+				r.MaxVal,
+				r.MaxVal,
+			}, r.BetweenOpts{Index: "ippq"}).CoerceTo("array"),
 			"basic": r.DB("cruncher").Table("basic").
-				GetAllByIndex("ip", row.Field("id")).CoerceTo("array"),
+				Between([]interface{}{
+				row.Field("id"),
+				r.MinVal,
+				r.MinVal,
+				r.MinVal,
+			}, []interface{}{
+				row.Field("id"),
+				r.MaxVal,
+				r.MaxVal,
+				r.MaxVal,
+			}, r.BetweenOpts{Index: "ippqc"}).CoerceTo("array"),
 		}
 	}).Run(activeSession)
 
@@ -111,11 +129,11 @@ func AddToDetailedPlayer(details dataFormat.DetailedNumberOf) error {
 		return ErrDisconnected
 	}
 
-	resp, err := r.Table("detailed").
-		GetAllByIndex("ip", details.InternalPlayerId).Filter(
-		map[string]string{
-			"p": details.TimePeriod,
-			"q": details.Queue,
+	resp, err := r.Table("detailed").GetAllByIndex("ippq",
+		[]interface{}{
+			details.InternalPlayerId,
+			details.TimePeriod,
+			details.Queue,
 		}).Update(
 		map[string]interface{}{
 			"w":  r.Row.Field("w").Add(details.Wins),
@@ -169,12 +187,12 @@ func AddToBasicPlayer(details dataFormat.BasicNumberOf) error {
 		return ErrDisconnected
 	}
 
-	resp, err := r.Table("basic").
-		GetAllByIndex("ip", details.InternalPlayerId).Filter(
-		map[string]string{
-			"p": details.TimePeriod,
-			"q": details.Queue,
-			"c": details.Champion,
+	resp, err := r.Table("basic").GetAllByIndex("ippqc",
+		[]interface{}{
+			details.InternalPlayerId,
+			details.TimePeriod,
+			details.Queue,
+			details.Champion,
 		}).Update(
 		map[string]interface{}{
 			"w":  r.Row.Field("w").Add(details.Wins),
