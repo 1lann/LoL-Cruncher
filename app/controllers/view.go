@@ -17,10 +17,13 @@
 package controllers
 
 import (
+	"cruncher/app/models/dataFormat"
 	"cruncher/app/models/database"
 	"cruncher/app/models/query"
 	"github.com/revel/revel"
+	"github.com/revel/revel/cache"
 	"strings"
+	"time"
 )
 
 type View struct {
@@ -53,7 +56,16 @@ func (c View) Request(region, name string) revel.Result {
 		return c.Redirect(View.Index)
 	}
 
-	player, new, err := query.GetStats(name, region, false)
+	var err error
+	player := dataFormat.PlayerData{}
+	new := false
+
+	if err = cache.Get(region+":"+dataFormat.NormalizeName(name),
+		&player); err != nil {
+		player, new, err = query.GetStats(name, region, false)
+		go cache.Set(region+":"+dataFormat.NormalizeName(player.SummonerName),
+			player, time.Hour*2)
+	}
 
 	if err != nil {
 		if err == query.ErrDatabaseError {
