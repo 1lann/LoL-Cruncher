@@ -27,14 +27,20 @@ import (
 	"time"
 )
 
+var regions = []string{
+	"na", "eune", "lan", "las", "oce", "br", "ru", "kr", "tr",
+}
+
 var updateRate int
 
-var updateHealth = 5
-var longUpdateHealth = 5
+var updateHealth = make(map[string]int)
+var longUpdateHealth = make(map[string]int)
 var updateLock = &sync.Mutex{}
+var updateWg = &sync.WaitGroup{}
 
 func UpdatePlayer(player dataFormat.Player) {
-	if updateHealth <= 0 {
+	if updateHealth[player.Region] <= 0 {
+		updateWg.Done()
 		return
 	}
 
@@ -42,19 +48,26 @@ func UpdatePlayer(player dataFormat.Player) {
 	if err != nil {
 		revel.WARN.Println("cron: failed to get games for player:", player.InternalId)
 		revel.WARN.Println(err)
-		updateHealth -= 1
+
+		if err != riotapi.ErrNotFound {
+			updateHealth[player.Region] -= 1
+		}
+
+		updateWg.Done()
 		return
 	}
 
-	updateHealth += 1
+	updateHealth[player.Region] += 1
 
 	crunch.Crunch(player, games)
 
+	updateWg.Done()
 	go cache.Delete(player.Region + ":" + player.NormalizedName)
 }
 
 func LongUpdatePlayer(player dataFormat.Player) {
-	if longUpdateHealth <= 0 {
+	if longUpdateHealth[player.Region] <= 0 {
+		updateWg.Done()
 		return
 	}
 
@@ -62,11 +75,16 @@ func LongUpdatePlayer(player dataFormat.Player) {
 	if err != nil {
 		revel.WARN.Println("cron: failed to get tier for player:", player.InternalId)
 		revel.WARN.Println(err)
-		longUpdateHealth -= 1
+
+		if err != riotapi.ErrNotFound {
+			longUpdateHealth[player.Region] -= 1
+		}
+
+		updateWg.Done()
 		return
 	}
 
-	longUpdateHealth += 1
+	longUpdateHealth[player.Region] += 1
 
 	tierData := struct {
 		Tier           string    `gorethink:"t"`
@@ -78,11 +96,14 @@ func LongUpdatePlayer(player dataFormat.Player) {
 			player.InternalId)
 		revel.WARN.Println(err)
 	}
+	updateWg.Done()
 }
 
 func RecordMonitor() {
 	for {
 		updateLock.Lock()
+		revel.INFO.Println("cron: starting player updates")
+
 		players := []dataFormat.Player{}
 		for {
 			var err error
@@ -95,16 +116,28 @@ func RecordMonitor() {
 			}
 		}
 
-		updateHealth = 5
+		if len(players) != 0 {
+			for _, region := range regions {
+				updateHealth[region] = 5
+			}
 
-		for _, player := range players {
-			go UpdatePlayer(player)
-			time.Sleep(time.Millisecond * time.Duration(updateRate))
+			for _, player := range players {
+				updateWg.Add(1)
+				go UpdatePlayer(player)
+				time.Sleep(time.Millisecond * time.Duration(updateRate))
+			}
+
+			updateWg.Wait()
+
+			for _, region := range regions {
+				if updateHealth[region] <= 0 {
+					revel.WARN.Println("cron: player update for region " + region +
+						" stopped due to no health")
+				}
+			}
 		}
 
-		if updateHealth <= 0 {
-			revel.WARN.Println("cron: player update stopped due to no health")
-		}
+		revel.INFO.Println("cron: finished player updates")
 		updateLock.Unlock()
 
 		time.Sleep(time.Hour)
@@ -114,6 +147,8 @@ func RecordMonitor() {
 func LongMonitor() {
 	for {
 		updateLock.Lock()
+		revel.INFO.Println("cron: starting long updates")
+
 		players := []dataFormat.Player{}
 		for {
 			var err error
@@ -126,16 +161,28 @@ func LongMonitor() {
 			}
 		}
 
-		longUpdateHealth = 5
+		if len(players) != 0 {
+			for _, region := range regions {
+				longUpdateHealth[region] = 5
+			}
 
-		for _, player := range players {
-			go LongUpdatePlayer(player)
-			time.Sleep(time.Millisecond * time.Duration(updateRate))
+			for _, player := range players {
+				updateWg.Add(1)
+				go LongUpdatePlayer(player)
+				time.Sleep(time.Millisecond * time.Duration(updateRate))
+			}
+
+			updateWg.Wait()
+
+			for _, region := range regions {
+				if updateHealth[region] <= 0 {
+					revel.WARN.Println("cron: player update for region " + region +
+						" stopped due to no health")
+				}
+			}
 		}
 
-		if longUpdateHealth <= 0 {
-			revel.WARN.Println("cron: player update stopped due to no health")
-		}
+		revel.INFO.Println("cron: finished long updates")
 		updateLock.Unlock()
 
 		time.Sleep(time.Hour * 24)
