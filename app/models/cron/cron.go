@@ -175,7 +175,7 @@ func LongMonitor() {
 			updateWg.Wait()
 
 			for _, region := range regions {
-				if updateHealth[region] <= 0 {
+				if longUpdateHealth[region] <= 0 {
 					revel.WARN.Println("cron: player update for region " + region +
 						" stopped due to no health")
 				}
