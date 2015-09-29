@@ -28,7 +28,7 @@ import (
 )
 
 var regions = []string{
-	"na", "eune", "lan", "las", "oce", "br", "ru", "kr", "tr",
+	"na", "euw", "eune", "lan", "las", "oce", "br", "ru", "kr", "tr",
 }
 
 var updateRate int
