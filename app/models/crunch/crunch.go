@@ -72,7 +72,7 @@ func GetNextUpdate(games []dataFormat.Game) time.Time {
 	}
 
 	averageDiff := (total / time.Duration(maxCheck))
-	intervalDuration := averageDiff * time.Duration(3)
+	intervalDuration := (averageDiff + (30 * time.Minute)) * time.Duration(3)
 
 	if intervalDuration.Hours() > 24 {
 		intervalDuration = time.Duration(24) * time.Hour
