@@ -39,8 +39,9 @@ var updateLock = &sync.Mutex{}
 var updateWg = &sync.WaitGroup{}
 
 func UpdatePlayer(player dataFormat.Player) {
+	defer updateWg.Done()
+
 	if updateHealth[player.Region] <= 0 {
-		updateWg.Done()
 		return
 	}
 
@@ -52,22 +53,19 @@ func UpdatePlayer(player dataFormat.Player) {
 		if err != riotapi.ErrNotFound {
 			updateHealth[player.Region] -= 1
 		}
-
-		updateWg.Done()
 		return
 	}
 
 	updateHealth[player.Region] += 1
 
 	crunch.Crunch(player, games)
-
-	updateWg.Done()
 	go cache.Delete(player.Region + ":" + player.NormalizedName)
 }
 
 func LongUpdatePlayer(player dataFormat.Player) {
+	defer updateWg.Done()
+
 	if longUpdateHealth[player.Region] <= 0 {
-		updateWg.Done()
 		return
 	}
 
@@ -79,8 +77,6 @@ func LongUpdatePlayer(player dataFormat.Player) {
 		if err != riotapi.ErrNotFound {
 			longUpdateHealth[player.Region] -= 1
 		}
-
-		updateWg.Done()
 		return
 	}
 
@@ -96,13 +92,12 @@ func LongUpdatePlayer(player dataFormat.Player) {
 			player.InternalId)
 		revel.WARN.Println(err)
 	}
-	updateWg.Done()
 }
 
 func RecordMonitor() {
 	for {
 		updateLock.Lock()
-		revel.INFO.Println("cron: starting player updates")
+		revel.WARN.Println("cron: starting player updates")
 
 		players := []dataFormat.Player{}
 		for {
@@ -137,7 +132,7 @@ func RecordMonitor() {
 			}
 		}
 
-		revel.INFO.Println("cron: finished player updates")
+		revel.WARN.Println("cron: finished player updates")
 		updateLock.Unlock()
 
 		time.Sleep(time.Hour)
@@ -147,7 +142,7 @@ func RecordMonitor() {
 func LongMonitor() {
 	for {
 		updateLock.Lock()
-		revel.INFO.Println("cron: starting long updates")
+		revel.WARN.Println("cron: starting long updates")
 
 		players := []dataFormat.Player{}
 		for {
@@ -182,7 +177,7 @@ func LongMonitor() {
 			}
 		}
 
-		revel.INFO.Println("cron: finished long updates")
+		revel.WARN.Println("cron: finished long updates")
 		updateLock.Unlock()
 
 		time.Sleep(time.Hour * 24)
