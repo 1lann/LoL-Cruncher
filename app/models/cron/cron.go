@@ -97,7 +97,7 @@ func LongUpdatePlayer(player dataFormat.Player) {
 func RecordMonitor() {
 	for {
 		updateLock.Lock()
-		revel.WARN.Println("cron: starting player updates")
+		revel.INFO.Println("cron: starting player updates")
 
 		players := []dataFormat.Player{}
 		for {
@@ -132,7 +132,7 @@ func RecordMonitor() {
 			}
 		}
 
-		revel.WARN.Println("cron: finished player updates")
+		revel.INFO.Println("cron: finished player updates")
 		updateLock.Unlock()
 
 		time.Sleep(time.Hour)
@@ -142,7 +142,7 @@ func RecordMonitor() {
 func LongMonitor() {
 	for {
 		updateLock.Lock()
-		revel.WARN.Println("cron: starting long updates")
+		revel.INFO.Println("cron: starting long updates")
 
 		players := []dataFormat.Player{}
 		for {
@@ -177,7 +177,7 @@ func LongMonitor() {
 			}
 		}
 
-		revel.WARN.Println("cron: finished long updates")
+		revel.INFO.Println("cron: finished long updates")
 		updateLock.Unlock()
 
 		time.Sleep(time.Hour * 24)
