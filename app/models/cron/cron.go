@@ -39,6 +39,13 @@ var updateLock = &sync.Mutex{}
 var updateWg = &sync.WaitGroup{}
 
 func UpdatePlayer(player dataFormat.Player) {
+	defer func() {
+		if r := recover(); r != nil {
+			revel.ERROR.Println("UpdatePlayer: recovered from panic")
+			revel.ERROR.Println(r)
+		}
+	}()
+
 	defer updateWg.Done()
 
 	if updateHealth[player.Region] <= 0 {
@@ -63,6 +70,13 @@ func UpdatePlayer(player dataFormat.Player) {
 }
 
 func LongUpdatePlayer(player dataFormat.Player) {
+	defer func() {
+		if r := recover(); r != nil {
+			revel.ERROR.Println("LongUpdatePlayer: recovered from panic")
+			revel.ERROR.Println(r)
+		}
+	}()
+
 	defer updateWg.Done()
 
 	if longUpdateHealth[player.Region] <= 0 {

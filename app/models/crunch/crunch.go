@@ -67,8 +67,12 @@ func GetNextUpdate(games []dataFormat.Game) time.Time {
 	maxCheck := int(math.Min(float64(4), float64(maxIndex)))
 
 	total := time.Duration(0)
-	for i := 0; i < maxCheck; i++ {
+	for i := 0; i <= maxCheck; i++ {
 		total = total + sortedDiffs[i]
+	}
+
+	if maxCheck < 1 {
+		maxCheck = 1
 	}
 
 	averageDiff := (total / time.Duration(maxCheck))
