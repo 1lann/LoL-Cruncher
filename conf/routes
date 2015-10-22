@@ -4,6 +4,8 @@
 
 module:testrunner
 
+module:pprof
+
 GET     /                                       View.Index
 GET		/about									View.About
 POST	/players								Data.CheckDatabaseUpdates
