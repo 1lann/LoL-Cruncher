@@ -63,6 +63,7 @@ func (c View) Request(region, name string) revel.Result {
 	if err = cache.Get(region+":"+dataFormat.NormalizeName(name),
 		&player); err != nil {
 		player, new, err = query.GetStats(name, region, false)
+		revel.WARN.Println("Storing", name, region, "in cache.")
 		go cache.Set(region+":"+dataFormat.NormalizeName(player.SummonerName),
 			player, time.Hour*2)
 	}
