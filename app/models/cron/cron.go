@@ -22,7 +22,7 @@ import (
 	"cruncher/app/models/database"
 	"cruncher/app/models/riotapi"
 	"github.com/revel/revel"
-	"github.com/revel/revel/cache"
+	// "github.com/revel/revel/cache"
 	"sync"
 	"time"
 )
@@ -66,7 +66,7 @@ func UpdatePlayer(player dataFormat.Player) {
 	updateHealth[player.Region] += 1
 
 	crunch.Crunch(player, games)
-	go cache.Delete(player.Region + ":" + player.NormalizedName)
+	// go cache.Delete(player.Region + ":" + player.NormalizedName)
 }
 
 func LongUpdatePlayer(player dataFormat.Player) {

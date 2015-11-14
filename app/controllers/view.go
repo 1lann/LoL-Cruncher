@@ -21,7 +21,7 @@ import (
 	"cruncher/app/models/database"
 	"cruncher/app/models/query"
 	"github.com/revel/revel"
-	"github.com/revel/revel/cache"
+	// "github.com/revel/revel/cache"
 	"strings"
 	"time"
 )
@@ -60,13 +60,13 @@ func (c View) Request(region, name string) revel.Result {
 	player := dataFormat.PlayerData{}
 	new := false
 
-	if err = cache.Get(region+":"+dataFormat.NormalizeName(name),
-		&player); err != nil {
-		player, new, err = query.GetStats(name, region, false)
-		revel.WARN.Println("Storing", name, region, "in cache.")
-		go cache.Set(region+":"+dataFormat.NormalizeName(player.SummonerName),
-			player, time.Hour*2)
-	}
+	// if err = cache.Get(region+":"+dataFormat.NormalizeName(name),
+	// 	&player); err != nil {
+	// 	player, new, err = query.GetStats(name, region, false)
+	// 	revel.WARN.Println("Storing", name, region, "in cache.")
+	// 	go cache.Set(region+":"+dataFormat.NormalizeName(player.SummonerName),
+	// 		player, time.Hour*2)
+	// }
 
 	if err != nil {
 		if err == query.ErrDatabaseError {
