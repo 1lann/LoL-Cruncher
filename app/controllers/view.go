@@ -60,6 +60,8 @@ func (c View) Request(region, name string) revel.Result {
 	player := dataFormat.PlayerData{}
 	new := false
 
+	player, new, err = query.GetStats(name, region, false)
+
 	// if err = cache.Get(region+":"+dataFormat.NormalizeName(name),
 	// 	&player); err != nil {
 	// 	player, new, err = query.GetStats(name, region, false)
