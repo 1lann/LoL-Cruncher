@@ -19,9 +19,9 @@
 
 // Database management: Performs back-end AJAX queries for data
 
-var gameVersion = 5201
-var championsURL = "//ddragon.leagueoflegends.com/cdn/5.20.1/data/en_US/champion.json"
-var imageURL = "//ddragon.leagueoflegends.com/cdn/5.20.1/img/champion/"
+var gameVersion = 5231
+var championsURL = "//ddragon.leagueoflegends.com/cdn/5.23.1/data/en_US/champion.json"
+var imageURL = "//ddragon.leagueoflegends.com/cdn/5.23.1/img/champion/"
 
 var championsDatabase = {}
 // Database indexed by stringed key, and {name: "Aatrox", image: "Aatrox.png"}
