@@ -149,7 +149,7 @@ func RecordMonitor() {
 		revel.INFO.Println("cron: finished player updates")
 		updateLock.Unlock()
 
-		time.Sleep(time.Hour)
+		time.Sleep(time.Minute * 10)
 	}
 }
 
@@ -194,7 +194,7 @@ func LongMonitor() {
 		revel.INFO.Println("cron: finished long updates")
 		updateLock.Unlock()
 
-		time.Sleep(time.Hour * 24)
+		time.Sleep(time.Hour)
 	}
 }
 
