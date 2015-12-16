@@ -317,7 +317,7 @@ func GetUpdatePlayers() ([]dataFormat.Player, error) {
 	c, err := r.Table("players").Between(r.MinVal, time.Now(),
 		r.BetweenOpts{Index: "nu"}).
 		OrderBy(r.OrderByOpts{Index: "nu"}).Pluck("p", "pi", "r", "id").
-		Limit(1000).Run(activeSession)
+		Limit(3000).Run(activeSession)
 
 	if isDisconnected(err) {
 		return []dataFormat.Player{}, ErrDisconnected
@@ -346,7 +346,7 @@ func GetLongUpdatePlayers() ([]dataFormat.Player, error) {
 	c, err := r.Table("players").Between(r.MinVal, time.Now(),
 		r.BetweenOpts{Index: "nl"}).
 		OrderBy(r.OrderByOpts{Index: "nl"}).Pluck("p", "pi", "r", "id").
-		Limit(1000).Run(activeSession)
+		Limit(3000).Run(activeSession)
 
 	if isDisconnected(err) {
 		return []dataFormat.Player{}, ErrDisconnected
