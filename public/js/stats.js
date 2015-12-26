@@ -65,7 +65,24 @@ var loadMonths = function() {
 	}
 
 	var months = Object.keys(monthMap)
-	months.sort()
+	months.sort(function(a, b) {
+		var aData = a.match(dateRegex)
+		var bData = b.match(dateRegex)
+
+		if (parseInt(aData[1]) > parseInt(bData[1])) {
+			return 1
+		} else if (parseInt(aData[1]) < parseInt(bData[1])) {
+			return -1
+		}
+
+		if (parseInt(aData[2]) > parseInt(bData[2])) {
+			return 1
+		} else if (parseInt(aData[2]) < parseInt(bData[2])) {
+			return -1
+		}
+
+		return 0
+	})
 
 	for (var i = 0; i < months.length; i++) {
 		var monthKey = "for " + getStringedDate(months[i])
