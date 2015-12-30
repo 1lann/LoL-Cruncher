@@ -157,9 +157,10 @@ func AddToDetailedPlayer(details dataFormat.DetailedNumberOf) error {
 			"b": map[string]interface{}{
 				"w": r.Row.Field("b").Field("w").Add(details.Blue.Wins),
 				"l": r.Row.Field("b").Field("l").Add(details.Blue.Losses),
-			}, "r": map[string]interface{}{
-				"w": r.Row.Field("b").Field("w").Add(details.Red.Wins),
-				"l": r.Row.Field("b").Field("l").Add(details.Red.Losses),
+			},
+			"r": map[string]interface{}{
+				"w": r.Row.Field("r").Field("w").Add(details.Red.Wins),
+				"l": r.Row.Field("r").Field("l").Add(details.Red.Losses),
 			},
 		}).RunWrite(activeSession)
 
