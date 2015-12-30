@@ -32,8 +32,10 @@ type View struct {
 
 func (c View) Index() revel.Result {
 	if !database.IsConnected {
+		go database.Connect()
 		return c.RenderTemplate("errors/down.html")
 	}
+
 	return c.Render()
 }
 
