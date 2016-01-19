@@ -165,6 +165,7 @@ func chomp(player dataFormat.Player, game dataFormat.Game) {
 	basic.Deaths = game.Deaths
 	detailed.DoubleKills = game.DoubleKills
 	detailed.TripleKills = game.TripleKills
+	detailed.QuadraKills = game.QuadraKills
 	detailed.PentaKills = game.PentaKills
 	detailed.GoldEarned = game.GoldEarned
 	basic.GoldEarned = game.GoldEarned
