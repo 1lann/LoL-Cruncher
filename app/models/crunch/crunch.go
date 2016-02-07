@@ -100,7 +100,9 @@ func displayError(data interface{}, dispErr error) {
 }
 
 func chomp(player dataFormat.Player, game dataFormat.Game) {
-	normalSR := (game.Type == "NORMAL")
+	normalSR := (game.Type == "NORMAL" ||
+		game.Type == "TEAM_BUILDER_DRAFT_UNRANKED_5x5" ||
+		game.Type == "NORMAL_5x5_DRAFT")
 	rankedSR := (game.Type == "RANKED_SOLO_5x5") ||
 		(game.Type == "RANKED_PREMADE_5x5")
 	teamBuilder := (game.Type == "CAP_5x5")
@@ -109,6 +111,7 @@ func chomp(player dataFormat.Player, game dataFormat.Game) {
 	rankedTT := (game.Type == "RANKED_PREMADE_3x3")
 	teamTT := (game.Type == "RANKED_TEAM_3x3")
 	aram := (game.Type == "ARAM_UNRANKED_5x5")
+	dynamicQueue := (game.Type == "TEAM_BUILDER_DRAFT_RANKED_5x5")
 	if !(normalSR || rankedSR || teamSR || normalTT || rankedTT || teamTT ||
 		teamBuilder || aram) {
 		return
@@ -120,6 +123,8 @@ func chomp(player dataFormat.Player, game dataFormat.Game) {
 		parsedType = "Summoner's Rift normals"
 	} else if rankedSR {
 		parsedType = "Summoner's Rift ranked"
+	} else if dynamicQueue {
+		parsedType = "Summoner's Rift dynamic queue"
 	} else if teamSR {
 		parsedType = "Summoner's Rift ranked team"
 	} else if normalTT {
