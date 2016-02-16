@@ -43,6 +43,7 @@ func UpdatePlayer(player dataFormat.Player) {
 		if r := recover(); r != nil {
 			revel.ERROR.Println("UpdatePlayer: recovered from panic")
 			revel.ERROR.Println(r)
+			revel.ERROR.Println("for", player)
 		}
 	}()
 
