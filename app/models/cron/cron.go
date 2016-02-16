@@ -22,6 +22,7 @@ import (
 	"cruncher/app/models/database"
 	"cruncher/app/models/riotapi"
 	"github.com/revel/revel"
+	"runtime/debug"
 	// "github.com/revel/revel/cache"
 	"sync"
 	"time"
@@ -44,6 +45,7 @@ func UpdatePlayer(player dataFormat.Player) {
 			revel.ERROR.Println("UpdatePlayer: recovered from panic")
 			revel.ERROR.Println(r)
 			revel.ERROR.Println("for", player)
+			revel.ERROR.Println(string(debug.Stack()))
 		}
 	}()
 
@@ -75,6 +77,8 @@ func LongUpdatePlayer(player dataFormat.Player) {
 		if r := recover(); r != nil {
 			revel.ERROR.Println("LongUpdatePlayer: recovered from panic")
 			revel.ERROR.Println(r)
+			revel.ERROR.Println("for", player)
+			revel.ERROR.Println(string(debug.Stack()))
 		}
 	}()
 
