@@ -64,10 +64,10 @@ func GetNextUpdate(games []dataFormat.Game) time.Time {
 
 	sort.Sort(byDuration(sortedDiffs))
 
-	maxCheck := int(math.Min(float64(4), float64(maxIndex)))
+	maxCheck := int(math.Min(float64(5), float64(len(sortedDiffs))))
 
 	total := time.Duration(0)
-	for i := 0; i <= maxCheck; i++ {
+	for i := 0; i < maxCheck; i++ {
 		total = total + sortedDiffs[i]
 	}
 
