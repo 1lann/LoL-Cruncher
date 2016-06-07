@@ -74,33 +74,33 @@ func GetSummonerData(name string, region string) (dataFormat.PlayerData,
 		GetAllByIndex("nn", name).
 		Filter(map[string]string{"r": region}).AtIndex(0).
 		Merge(func(row r.Term) interface{} {
-		return map[string]interface{}{
-			"detailed": r.DB("cruncher").Table("detailed").
-				Between([]interface{}{
-				row.Field("id"),
-				r.MinVal,
-				r.MinVal,
-			}, []interface{}{
-				row.Field("id"),
-				r.MaxVal,
-				r.MaxVal,
-			}, r.BetweenOpts{Index: "ippq"}).Without("id", "ip").
-				CoerceTo("array"),
-			"basic": r.DB("cruncher").Table("basic").
-				Between([]interface{}{
-				row.Field("id"),
-				r.MinVal,
-				r.MinVal,
-				r.MinVal,
-			}, []interface{}{
-				row.Field("id"),
-				r.MaxVal,
-				r.MaxVal,
-				r.MaxVal,
-			}, r.BetweenOpts{Index: "ippqc"}).Without("id", "ip").
-				CoerceTo("array"),
-		}
-	}).Run(activeSession)
+			return map[string]interface{}{
+				"detailed": r.DB("cruncher").Table("detailed").
+					Between([]interface{}{
+						row.Field("id"),
+						r.MinVal,
+						r.MinVal,
+					}, []interface{}{
+						row.Field("id"),
+						r.MaxVal,
+						r.MaxVal,
+					}, r.BetweenOpts{Index: "ippq"}).Without("id", "ip").
+					CoerceTo("array"),
+				"basic": r.DB("cruncher").Table("basic").
+					Between([]interface{}{
+						row.Field("id"),
+						r.MinVal,
+						r.MinVal,
+						r.MinVal,
+					}, []interface{}{
+						row.Field("id"),
+						r.MaxVal,
+						r.MaxVal,
+						r.MaxVal,
+					}, r.BetweenOpts{Index: "ippqc"}).Without("id", "ip").
+					CoerceTo("array"),
+			}
+		}).Run(activeSession)
 
 	if isDisconnected(err) {
 		return dataFormat.PlayerData{}, ErrDisconnected
