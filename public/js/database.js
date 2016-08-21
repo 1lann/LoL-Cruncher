@@ -19,7 +19,7 @@
 
 // Database management: Performs back-end AJAX queries for data
 
-var gameVersion = 6111
+var gameVersion = 6162
 var championsURL = "//ddragon.leagueoflegends.com/cdn/6.16.2/data/en_US/champion.json"
 var imageURL = "//ddragon.leagueoflegends.com/cdn/6.16.2/img/champion/"
 
