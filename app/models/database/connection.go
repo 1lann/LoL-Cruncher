@@ -28,7 +28,7 @@ var isConnecting bool
 var activeSession *r.Session
 
 func isDisconnected(err error) bool {
-	if err == r.ErrBadConn || err == r.ErrConnectionClosed ||
+	if err == r.ErrConnectionClosed ||
 		err == r.ErrNoConnections || err == r.ErrNoConnectionsStarted ||
 		err == io.EOF ||
 		(err != nil && strings.Contains(err.Error(), "broken pipe")) {
