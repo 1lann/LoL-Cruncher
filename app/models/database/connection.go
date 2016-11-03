@@ -82,7 +82,8 @@ func Connect() {
 		session, err := r.Connect(r.ConnectOpts{
 			Address:  databaseIp,
 			Database: "cruncher",
-			AuthKey:  databasePassword,
+			Username: "cruncher",
+			Password:  databasePassword,
 			MaxIdle:  10,
 			MaxOpen:  10,
 		})
