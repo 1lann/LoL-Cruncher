@@ -20,10 +20,11 @@ import (
 	"cruncher/app/models/dataFormat"
 	"cruncher/app/models/database"
 	"encoding/json"
-	"github.com/revel/revel"
 	"math"
 	"sort"
 	"time"
+
+	"github.com/revel/revel"
 )
 
 func hasBeenProcessed(games []string, query string) bool {
@@ -104,7 +105,9 @@ func chomp(player dataFormat.Player, game dataFormat.Game) {
 		game.Type == "TEAM_BUILDER_DRAFT_UNRANKED_5x5" ||
 		game.Type == "NORMAL_5x5_DRAFT")
 	rankedSR := (game.Type == "RANKED_SOLO_5x5") ||
-		(game.Type == "RANKED_PREMADE_5x5")
+		(game.Type == "RANKED_PREMADE_5x5" || game.Type == "RANKED_FLEX_SR" ||
+			game.Type == "TEAM_BUILDER_DRAFT_RANKED_5x5" ||
+			game.Type == "TEAM_BUILDER_DRAFT_UNRANKED_5x5")
 	teamBuilder := (game.Type == "CAP_5x5")
 	teamSR := (game.Type == "RANKED_TEAM_5x5")
 	normalTT := (game.Type == "NORMAL_3x3")
