@@ -99,11 +99,11 @@ func (c View) Request(region, name string) revel.Result {
 
 	player.RecordStartString = player.RecordStart.Format("2 January 2006")
 
-	c.RenderArgs["new"] = new
-	c.RenderArgs["player"] = player
-	c.RenderArgs["name"] = resolvedName
-	c.RenderArgs["titleName"] = resolvedName + " - LoL Cruncher"
-	c.RenderArgs["description"] = "View " + resolvedName +
+	c.ViewArgs["new"] = new
+	c.ViewArgs["player"] = player
+	c.ViewArgs["name"] = resolvedName
+	c.ViewArgs["titleName"] = resolvedName + " - LoL Cruncher"
+	c.ViewArgs["description"] = "View " + resolvedName +
 		"'s League of Legends statistics and champion breakdowns for all " +
 		"queues (since " + player.RecordStart.Format("2 January 2006") + ")"
 	return c.Render()

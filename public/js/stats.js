@@ -624,13 +624,13 @@ var generateChampionCards = function() {
 	var renderInput = []
 
 	for (var i = 0; i < results.length; i++) {
-		var renderArgs = {
+		var ViewArgs = {
 			imageName: championsDatabase[results[i]].image,
 			displayName: championsDatabase[results[i]].name,
 			dateFilter: selectedDate + " for " + selectedQueue,
 			stats: generateChampionStats(results[i]),
 		}
-		var championCard = championCardTemplate(renderArgs)
+		var championCard = championCardTemplate(ViewArgs)
 
 		if (window.innerWidth <= 991) {
 			$(".champion-cards").append(championCard)
@@ -666,7 +666,7 @@ var generateTable = function() {
 			var statsSource = getBasicCollection(dateSelection, queueSelection,
 				championId)
 
-			var renderArgs = {
+			var ViewArgs = {
 				imageName: championsDatabase[championId].image,
 				championName: championsDatabase[championId].name,
 				games: (statsSource.w + statsSource.l).toString(),
@@ -681,7 +681,7 @@ var generateTable = function() {
 				assists: statsSource.a.toString()
 			}
 
-			stats.push({stats: tableRowTemplate(renderArgs)})
+			stats.push({stats: tableRowTemplate(ViewArgs)})
 		}
 
 		var footerStats = getDetailedCollection(dateSelection, queueSelection)
@@ -718,7 +718,7 @@ var generateTable = function() {
 				winrate = Math.round((statsSource.w/numGames) * 100) + "%"
 			}
 
-			var renderArgs = {
+			var ViewArgs = {
 				imageName: championsDatabase[championId].image,
 				championName: championsDatabase[championId].name,
 				games: numGames.toString(),
@@ -732,7 +732,7 @@ var generateTable = function() {
 				assists: oneDecRound(statsSource.a/numGames)
 			}
 
-			stats.push({stats: tableRowTemplate(renderArgs)})
+			stats.push({stats: tableRowTemplate(ViewArgs)})
 		}
 
 		var footerStats = getDetailedCollection(dateSelection, queueSelection)
@@ -760,13 +760,13 @@ var generateTable = function() {
 		tableFooter = tableFooterTemplate(footerArgs)
 	}
 
-	var renderArgs = {
+	var ViewArgs = {
 		tableHeader: tableHeader,
 		championStats: stats,
 		tableFooter: tableFooter
 	}
 
-	var tableElement = $(tableStatsTemplate(renderArgs))
+	var tableElement = $(tableStatsTemplate(ViewArgs))
 
 	$(".stats-table-container").append(tableElement)
 	$(".stats-table-container").scroll(function() {
